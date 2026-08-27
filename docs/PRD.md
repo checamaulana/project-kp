@@ -44,7 +44,11 @@ Rumah Sakit Gigi dan Mulut (RSGM) UNIMUS saat ini masih menggunakan sistem manaj
 
 ### 3.1 In-Scope (Fase 1 — MVP)
 - Modul **Surat** (masuk, keluar, disposisi, rekap, cetak lembar disposisi).
-- Modul **Permintaan Pelayanan** (helpdesk internal multi-jenis: IT, Umum, Medis, Pemeliharaan).
+- Modul **IT Helpdesk / Lapor Kendala IT** (sesuai screenshot).
+  - **Halaman 1 — Form Pelaporan Staf:** nama pelapor, unit, kategori kendala (hardware/jaringan/aplikasi SIM-RS/lainnya), jenis permintaan (perbaikan/konsultasi/instalasi baru), deskripsi, file pendukung.
+  - **Halaman 2 — Dashboard Tim IT:** 3 card counter (Tiket Baru/Diproses/Selesai) + tabel daftar tiket dengan filter.
+  - **Alur Status:** Baru (merah) → Diproses (kuning) → Selesai (hijau) / Ditutup.
+  - **Tindak Lanjut:** Tim IT mencatat solusi/tindak lanjut saat menutup tiket.
 - Autentikasi (login username + password, role-based access, register + approval).
 - Notifikasi in-app (lonceng di header).
 - Master data: User, Unit, Role, Kode Surat, Indeks.
@@ -261,36 +265,51 @@ Rumah Sakit Gigi dan Mulut (RSGM) UNIMUS saat ini masih menggunakan sistem manaj
 ##### FR-REK-03: Rekap Disposisi
 - Tabel disposisi: Surat (No, Perihal), Dari, Kepada, Isi, Status (Selesai/Menunggu/Diarsipkan), Tanggal.
 
-### 5.3 Modul Permintaan Pelayanan
+### 5.3 Modul IT Helpdesk (Lapor Kendala IT)
 
-#### FR-PP-01: Ajukan Permintaan Pelayanan
-- **Akses:** Semua role bisa ajukan.
+#### FR-HD-01: Ajukan Laporan Kendala (Halaman 1 — Form Staf)
+- **Akses:** Semua user aktif bisa kirim laporan.
 - **Field:**
-  - Judul Usulan (text, max 100 char, required, tidak boleh diskrit)
-  - Jenis Pelayanan (dropdown: Pendaftaran, Rawat Jalan, Rawat Inap, Farmasi, Radiologi, dII)
-  - Aplikasi (dropdown: Trouble / Permintaan Pengembangan Fitur / dII)
-  - Detail Permintaan Pelayanan (rich text: Latar Belakang, Tujuan Usulan, Penjelasan Masalah, Contoh Kasus, Solusi yang Diinginkan)
-  - File Lampiran (opsional, max 10MB per file, multiple)
-- **Status awal:** `waiting` setelah klik "Kirim".
+  - **Nama Pelapor** (text, auto-fill dari user login)
+  - **Unit / Bagian** (dropdown: Pendaftaran, Rekam Medis, IGD, Radiologi, Rawat Jalan, Rawat Inap, Farmasi, CSSD, Keuangan, Integrasi, TU)
+  - **Kategori Kendala** (dropdown fix 4: Hardware, Jaringan, Aplikasi SIM-RS, Lainnya)
+  - **Permintaan** (dropdown fix 3: Perbaikan, Konsultasi, Instalasi Baru)
+  - **Deskripsi Kendala** (textarea, required)
+  - **File Pendukung** (opsional, multi-file, max 5MB per file, format: JPEG/PNG/PDF)
+- **Aksi:** Tombol "Kirim Laporan" → tiket otomatis masuk antrean IT dengan status "Baru".
+- **Output:** Generate kode tiket unik (mis: `#0125`), tampil pesan sukses.
 
-#### FR-PP-02: Daftar Permintaan Pelayanan
-- **Filter:** Waktu, Jenis Pelayanan, Status, Pengirim.
-- **Kolom:** No, Waktu, Jenis Pelayanan, Judul Usulan, Status, Pengirim, **Aksi** (Rincian).
-- **Pagination:** 10/25/50 per halaman.
-- **Akses:** User lihat miliknya; admin TU & kepala unit lihat semua unit-nya; superadmin lihat semua.
+#### FR-HD-02: Dashboard Tim IT (Halaman 2)
+- **Akses:** `superadmin`, `admin_tu`, role khusus IT (akan ditambah).
+- **Tampilan:**
+  - **3 Card Counter:**
+    - Tiket Baru (jumlah tiket status `baru`)
+    - Diproses (jumlah tiket status `diproses`)
+    - Selesai (jumlah tiket status `selesai`)
+  - **Tabel Daftar Tiket:**
+    - Kolom: Tiket (#kode), Unit, Permintaan, Lampiran (icon/pill), Status (badge warna)
+    - Pagination 10/25/50 per halaman
+- **Filter:** Status, Unit, Kategori, search by kode tiket/nama pelapor.
 
-#### FR-PP-03: Rincian Permintaan Pelayanan
-- **Tampilan:** Info pengajuan + Deskripsi Usulan + **Riwayat Progress** (timeline update dari handler).
-- **Status badge:** Waiting (kuning) / Accepted (hijau) / Rejected (merah) / In Progress (biru).
+#### FR-HD-03: Rincian Tiket
+- **Akses:** Semua user bisa lihat rincian tiket miliknya; IT/admin bisa lihat semua.
+- **Tampilan:** Info tiket + Deskripsi + Lampiran (preview/download) + Tindak Lanjut + Riwayat Progress (timeline).
 
-#### FR-PP-04: Update Progress oleh Handler
-- **Akses:** User yang di-assign sebagai handler oleh admin TU.
-- **Field:** Komentar progress (textarea), Ubah status (next status).
-- **Notifikasi:** Ke pengaju setiap update.
+#### FR-HD-04: Update Status oleh Tim IT
+- **Alur:**
+  1. Status `baru` → klik "Proses" → status `diproses`, set `handler_id = current user`, set `diproses_at`.
+  2. Status `diproses` → klik "Tandai Selesai" → form input Tindak Lanjut → status `selesai`, set `selesai_at`.
+  3. Alternatif: klik "Tutup" tanpa tindak lanjut → status `ditutup`.
+- **Field Tindak Lanjut:** textarea required saat set selesai.
+- **Notifikasi:** Ke pelapor setiap update status.
 
-#### FR-PP-05: Tutup Permintaan
-- **Trigger:** Handler atau pengaju close tiket.
-- **Output:** Status `closed`, tiket diarsipkan.
+#### FR-HD-05: Riwayat Progress
+- Setiap perubahan status dicatat di tabel `helpdesk_progress` dengan timestamp.
+- Ditampilkan sebagai timeline di halaman rincian.
+
+#### FR-HD-06: Kode Tiket
+- Auto-generate sequential per tahun, format `#0125`.
+- Reset tiap tahun baru.
 
 ### 5.4 Master Data
 
