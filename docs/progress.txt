@@ -1,0 +1,36 @@
+# SIM SURAT RSGM UNIMUS — Progress Log
+
+## Project Status: PLANNING COMPLETE — Ready for Implementation
+
+## 2026-08-27 — Planning Phase Complete
+
+### Documentation Created
+- [x] `docs/PRD.md` — Product Requirements Document
+- [x] `docs/APP_FLOW.md` — Application flow & architecture
+- [x] `docs/TECH_STACK.md` — Technology stack detail
+- [x] `docs/FRONTEND_GUIDELINES.md` — Frontend conventions
+- [x] `docs/BACKEND_STRUCTURE.md` — Backend conventions
+- [x] `docs/IMPLEMENTATION_PLAN.md` — Execution roadmap
+
+### Key Decisions Locked
+- Stack: Laravel 12 + Inertia 2 + React 18 + TS + shadcn/ui + MySQL
+- Multi-modul: Surat (MVP) + Permintaan Pelayanan (MVP) + Pengadaan (Fase 2)
+- Auth: Username + password, register + approval
+- 4 roles: superadmin, admin_tu, kepala_unit, staf
+- Single unit per user (no unit switching)
+- Disposisi: multi-route, Rektor (superadmin) sebagai final ACC
+- Surat keluar: wajib approval Rektor
+- File storage: local Laravel (`storage/app/private/surat/`)
+- Deployment: on-premise RSGM
+- Standalone (no external integration)
+- Bahasa Indonesia UI
+- Soft delete + auto-purge 30 hari
+- MVP scope: Surat + Pelayanan (~21 hari kerja)
+
+### Next Steps (Fase 0)
+1. Inisialisasi project Laravel 12 + Inertia (Task 0.1.1)
+2. Install shadcn/ui (Task 0.1.2)
+3. Konfigurasi Tailwind design tokens (Task 0.1.3)
+4. Database migrations + seeders (Task 0.2.x)
+5. Auth scaffolding (Task 0.3.1)
+6. AppLayout + Header + Sidebar (Task 0.3.3)
