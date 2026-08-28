@@ -2,18 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreSuratRequest;
+use App\Http\Requests\UpdateSuratRequest;
 use App\Models\Surat;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Support\Facades\Storage;
 
-class SuratController extends Controller
+class SuratController extends BaseController
 {
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
-        $query = Surat::with([
-            'unit',
-            'user',
-        ]);
+        $query = Surat::with(['unit', 'user']);
 
         if ($request->filled('jenis_surat')) {
             $query->where(
@@ -29,181 +31,109 @@ class SuratController extends Controller
             );
         }
 
-        if ($request->filled('status')) {
-            $query->where(
-                'status',
-                $request->status
-            );
-        }
-
         if ($request->filled('search')) {
-            $search = $request->search;
-
-            $query->where(function ($q) use ($search) {
+            $query->where(function ($q) use ($request) {
                 $q->where(
                     'nomor_surat',
                     'like',
-                    "%{$search}%"
+                    '%'.$request->search.'%'
                 )
-                ->orWhere(
-                    'perihal',
-                    'like',
-                    "%{$search}%"
-                )
-                ->orWhere(
-                    'asal_surat',
-                    'like',
-                    "%{$search}%"
-                );
+                    ->orWhere(
+                        'perihal',
+                        'like',
+                        '%'.$request->search.'%'
+                    );
             });
         }
 
-        return response()->json(
-            $query
-                ->latest()
-                ->paginate(10)
-        );
+        $surats = $query
+            ->latest()
+            ->paginate(10);
+
+        return response()->json($surats);
     }
 
-    public function store(Request $request)
+    public function create(): JsonResponse
     {
-        $validated = $request->validate([
-            'nomor_surat' => 'nullable|string|max:255',
-
-            'jenis_surat' => [
-                'required',
-                'in:external,internal,penawaran,pengadaan'
-            ],
-
-            'tipe' => [
-                'required',
-                'in:masuk,keluar'
-            ],
-
-            'indeks' => 'nullable|string|max:100',
-
-            'perihal' => 'required|string|max:255',
-
-            'asal_surat' => 'nullable|string|max:255',
-
-            'tujuan_surat' => 'nullable|string|max:255',
-
-            'tanggal_surat' => 'nullable|date',
-
-            'tanggal_diterima' => 'nullable|date',
-
-            'unit_id' => 'nullable|exists:units,id',
-
-            'file_surat' => [
-                'nullable',
-                'file',
-                'mimes:pdf,jpg,jpeg,png',
-                'max:10240'
-            ],
-
-            'keterangan' => 'nullable|string',
+        return response()->json([
+            'jenis_surat' => ['external', 'internal', 'penawaran', 'pengadaan'],
+            'tipe' => ['masuk', 'keluar'],
         ]);
+    }
 
-        if ($request->hasFile('file_surat')) {
-            $validated['file_surat'] =
-                $request
-                    ->file('file_surat')
-                    ->store('surat', 'public');
+    public function store(StoreSuratRequest $request): RedirectResponse
+    {
+        $user = $request->user();
+
+        if ($user === null) {
+            abort(401);
         }
 
-        $validated['user_id'] = $request->user()->id;
+        $data = $request->validated();
 
-        $validated['status'] =
-            $validated['tipe'] === 'masuk'
+        if ($request->hasFile('file_surat')) {
+            $data['file_surat'] =
+                $request
+                    ->file('file_surat')
+                    ->store(
+                        'surat',
+                        'public'
+                    );
+        }
+
+        $data['user_id'] = $user->getAuthIdentifier();
+
+        $data['status'] =
+            $data['tipe'] === 'masuk'
                 ? 'diterima'
                 : 'draft';
 
-        $surat = Surat::create($validated);
+        Surat::create($data);
 
-        return response()->json([
-            'message' => 'Surat berhasil ditambahkan',
-            'data' => $surat->load('unit'),
-        ], 201);
+        return redirect()
+            ->route('surat.index')
+            ->with(
+                'success',
+                'Surat berhasil ditambahkan'
+            );
     }
 
-    public function show(Surat $surat)
+    public function show(Surat $surat): JsonResponse
     {
-        return response()->json(
-            $surat->load([
-                'unit',
-                'user',
-                'disposisi.keUnit',
-                'disposisi.keUser',
-            ])
-        );
+        return response()->json($surat->load(['unit', 'user', 'disposisi']));
     }
 
-    public function update(Request $request, Surat $surat)
+    public function edit(Surat $surat): JsonResponse
     {
-        $validated = $request->validate([
-            'nomor_surat' => 'nullable|string|max:255',
+        return response()->json($surat);
+    }
 
-            'jenis_surat' => [
-                'sometimes',
-                'in:external,internal,penawaran,pengadaan'
-            ],
-
-            'tipe' => [
-                'sometimes',
-                'in:masuk,keluar'
-            ],
-
-            'indeks' => 'nullable|string|max:100',
-
-            'perihal' => 'sometimes|string|max:255',
-
-            'asal_surat' => 'nullable|string|max:255',
-
-            'tujuan_surat' => 'nullable|string|max:255',
-
-            'tanggal_surat' => 'nullable|date',
-
-            'tanggal_diterima' => 'nullable|date',
-
-            'unit_id' => 'nullable|exists:units,id',
-
-            'file_surat' => [
-                'nullable',
-                'file',
-                'mimes:pdf,jpg,jpeg,png',
-                'max:10240'
-            ],
-
-            'status' => [
-                'nullable',
-                'in:draft,diterima,diproses,didisposisi,selesai,ditolak'
-            ],
-
-            'keterangan' => 'nullable|string',
-        ]);
+    public function update(
+        UpdateSuratRequest $request,
+        Surat $surat
+    ): RedirectResponse {
+        $data = $request->validated();
+        $fileSuratLama = $surat->file_surat;
 
         if ($request->hasFile('file_surat')) {
-
-            if ($surat->file_surat) {
-                Storage::disk('public')
-                    ->delete($surat->file_surat);
-            }
-
-            $validated['file_surat'] =
-                $request
-                    ->file('file_surat')
-                    ->store('surat', 'public');
+            $data['file_surat'] = $request->file('file_surat')->store('surat', 'public');
         }
 
-        $surat->update($validated);
+        $surat->update($data);
 
-        return response()->json([
-            'message' => 'Surat berhasil diperbarui',
-            'data' => $surat->fresh()
-        ]);
+        if ($request->hasFile('file_surat') && $fileSuratLama) {
+            Storage::disk('public')->delete($fileSuratLama);
+        }
+
+        return redirect()
+            ->route('surat.index')
+            ->with(
+                'success',
+                'Surat berhasil diperbarui'
+            );
     }
 
-    public function destroy(Surat $surat)
+    public function destroy(Surat $surat): RedirectResponse
     {
         if ($surat->file_surat) {
             Storage::disk('public')
@@ -212,8 +142,11 @@ class SuratController extends Controller
 
         $surat->delete();
 
-        return response()->json([
-            'message' => 'Surat berhasil dihapus'
-        ]);
+        return redirect()
+            ->route('surat.index')
+            ->with(
+                'success',
+                'Surat berhasil dihapus'
+            );
     }
 }

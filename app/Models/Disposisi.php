@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Disposisi extends Model
 {
+    protected $table = 'disposisis';
+
     protected $fillable = [
         'surat_id',
         'dari_unit_id',
@@ -25,20 +27,50 @@ class Disposisi extends Model
         'batas_waktu' => 'date',
     ];
 
+    /*
+    |--------------------------------------------------------------------------
+    | Relasi ke Surat
+    |--------------------------------------------------------------------------
+    */
+
     public function surat(): BelongsTo
     {
         return $this->belongsTo(Surat::class);
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Relasi ke Unit Asal
+    |--------------------------------------------------------------------------
+    */
+
     public function dariUnit(): BelongsTo
     {
-        return $this->belongsTo(Unit::class, 'dari_unit_id');
+        return $this->belongsTo(
+            Unit::class,
+            'dari_unit_id'
+        );
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Relasi ke Unit Tujuan
+    |--------------------------------------------------------------------------
+    */
 
     public function keUnit(): BelongsTo
     {
-        return $this->belongsTo(Unit::class, 'ke_unit_id');
+        return $this->belongsTo(
+            Unit::class,
+            'ke_unit_id'
+        );
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | User pengirim disposisi
+    |--------------------------------------------------------------------------
+    */
 
     public function dariUser(): BelongsTo
     {

@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Surat extends Model
 {
+    protected $table = 'surats';
+
     protected $fillable = [
         'nomor_surat',
         'jenis_surat',
