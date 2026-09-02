@@ -10,18 +10,20 @@ class UnitSeeder extends Seeder
     public function run(): void
     {
         $units = [
-            ['kode' => 'REK', 'nama' => 'Rektorat', 'keterangan' => 'Pimpinan universitas'],
-            ['kode' => 'TU', 'nama' => 'Tata Usaha', 'keterangan' => 'Administrasi umum'],
-            ['kode' => 'AKD', 'nama' => 'Akademik', 'keterangan' => 'Biro Akademik'],
-            ['kode' => 'KMN', 'nama' => 'Kemahasiswaan', 'keterangan' => 'Biro Kemahasiswaan'],
-            ['kode' => 'KEU', 'nama' => 'Keuangan', 'keterangan' => 'Biro Keuangan'],
-            ['kode' => ' hum', 'nama' => 'Humas & Protokol', 'keterangan' => 'Hubungan masyarakat'],
-            ['kode' => 'LPM', 'nama' => 'LPM', 'keterangan' => 'Lembaga Penjamin Mutu'],
-            ['kode' => 'LAB', 'nama' => 'Laboratorium', 'keterangan' => 'Lab terpadu'],
-            ['kode' => 'RS', 'nama' => 'Rumah Sakit', 'keterangan' => 'RSGMP Unimus'],
-            ['kode' => 'POL', 'nama' => 'Poliklinik', 'keterangan' => 'Poliklinik gigi & umum'],
+            // Unit RSGM (sesuai screenshot Lapor Kendala IT + tambahan)
+            ['kode' => 'REK', 'nama' => 'Rektorat', 'keterangan' => 'Pimpinan RSGM UNIMUS'],
+            ['kode' => 'TU', 'nama' => 'Tata Usaha', 'keterangan' => 'Administrasi umum RSGM'],
+            ['kode' => 'PEN', 'nama' => 'Pendaftaran', 'keterangan' => 'Unit pendaftaran pasien'],
+            ['kode' => 'RM', 'nama' => 'Rekam Medis', 'keterangan' => 'Unit rekam medis'],
             ['kode' => 'IGD', 'nama' => 'IGD', 'keterangan' => 'Instalasi Gawat Darurat'],
-            ['kode' => 'APM', 'nama' => 'Apotek', 'keterangan' => 'Instalasi Farmasi'],
+            ['kode' => 'RAD', 'nama' => 'Radiologi', 'keterangan' => 'Unit radiologi gigi'],
+            ['kode' => 'RJ', 'nama' => 'Rawat Jalan', 'keterangan' => 'Unit rawat jalan'],
+            ['kode' => 'RI', 'nama' => 'Rawat Inap', 'keterangan' => 'Unit rawat inap'],
+            ['kode' => 'FAR', 'nama' => 'Farmasi', 'keterangan' => 'Unit farmasi'],
+            ['kode' => 'CSSD', 'nama' => 'CSSD', 'keterangan' => 'Central Sterile Supply Department'],
+            ['kode' => 'KEU', 'nama' => 'Keuangan', 'keterangan' => 'Unit keuangan'],
+            ['kode' => 'INT', 'nama' => 'Integrasi', 'keterangan' => 'Unit integrasi sistem'],
+            ['kode' => 'IT', 'nama' => 'IT Rumah Sakit', 'keterangan' => 'Unit teknologi informasi RSGM'],
         ];
 
         foreach ($units as $unit) {

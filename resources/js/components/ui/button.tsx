@@ -52,7 +52,41 @@ function Button({
       className={cn(buttonVariants({ variant, size, className }))}
       {...props}
     />
-  )
+  );
 }
 
 export { Button, buttonVariants }
+
+export type ButtonLinkProps = React.ComponentProps<typeof Link> &
+  VariantProps<typeof buttonVariants>;
+
+import { Link } from '@inertiajs/react';
+
+function ButtonLink({ className, variant, size, ...props }: ButtonLinkProps) {
+  return (
+    <Link
+      data-slot="button"
+      className={cn(buttonVariants({ variant, size, className }))}
+      {...props}
+    />
+  );
+}
+
+export { ButtonLink };
+
+export type ButtonAnchorProps = React.AnchorHTMLAttributes<HTMLAnchorElement> &
+  VariantProps<typeof buttonVariants> & {
+    target?: string;
+  };
+
+function ButtonAnchor({ className, variant, size, ...props }: ButtonAnchorProps) {
+  return (
+    <a
+      data-slot="button"
+      className={cn(buttonVariants({ variant, size, className }))}
+      {...props}
+    />
+  );
+}
+
+export { ButtonAnchor };

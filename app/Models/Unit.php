@@ -38,4 +38,14 @@ class Unit extends Model
     {
         return $this->hasMany(SuratKeluar::class, 'unit_pembuat_id');
     }
+
+    public function helpdeskTickets(): HasMany
+    {
+        return $this->hasMany(HelpdeskTicket::class);
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
 }

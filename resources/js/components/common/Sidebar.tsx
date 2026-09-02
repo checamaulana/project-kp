@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { LayoutDashboard, FileInput, FileOutput, ClipboardList, Inbox, BarChart3, Settings } from 'lucide-react';
+import { LayoutDashboard, FileInput, FileOutput, ClipboardList, Inbox, BarChart3, Settings, Wrench, HelpCircle } from 'lucide-react';
 import { User } from '@/types';
 
 interface NavItem {
@@ -11,9 +11,11 @@ interface NavItem {
 
 const navItems: NavItem[] = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/surat-masuk', label: 'Surat Masuk', icon: FileInbox },
-    { href: '/surat-keluar', label: 'Surat Keluar', icon: FileOutbox },
-    { href: '/pelayanan', label: 'Pelayanan', icon: ClipboardList },
+    { href: '/surat-masuk', label: 'Surat Masuk', icon: FileInput },
+    { href: '/surat-keluar', label: 'Surat Keluar', icon: FileOutput },
+    { href: '/disposisi', label: 'Disposisi', icon: Inbox },
+    { href: '/helpdesk', label: 'IT Helpdesk', icon: Wrench },
+    { href: '/helpdesk/create', label: 'Lapor Kendala', icon: HelpCircle },
     { href: '/notifications', label: 'Notifikasi', icon: Inbox },
     { href: '/rekap', label: 'Rekap', icon: BarChart3 },
     { href: '/admin/users', label: 'Admin', icon: Settings, roles: ['superadmin', 'admin_tu'] },

@@ -1,12 +1,23 @@
+export type Unit = {
+    id: number;
+    kode: string;
+    nama: string;
+    keterangan?: string;
+    is_active: boolean;
+};
+
 export type User = {
     id: number;
     name: string;
+    username: string;
     email: string;
-    avatar?: string;
+    role: 'superadmin' | 'admin_tu' | 'kepala_unit' | 'staf';
+    status: 'pending' | 'active' | 'rejected';
+    unit_id: number;
+    unit?: Unit;
     email_verified_at: string | null;
     created_at: string;
     updated_at: string;
-    [key: string]: unknown; // This allows for additional properties...
 };
 
 export type Auth = {

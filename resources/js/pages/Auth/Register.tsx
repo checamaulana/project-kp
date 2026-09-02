@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
+import { login, register } from '@/routes';
 
 interface UnitOption {
     id: number;
@@ -29,7 +30,7 @@ export default function Register({ units }: RegisterProps) {
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(route('register'));
+        post(register.url());
     };
 
     return (
@@ -101,12 +102,12 @@ export default function Register({ units }: RegisterProps) {
                             </Select>
                         </div>
                         <Button type="submit" className="w-full" disabled={processing}>
-                            {processing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            {processing && <Loader2 className="icon-nav animate-spin" />}
                             Daftar
                         </Button>
                         <p className="text-center text-sm text-muted-foreground">
                             Sudah punya akun?{' '}
-                            <a href={route('login')} className="text-primary underline">
+                            <a href={login.url()} className="text-primary underline">
                                 Masuk
                             </a>
                         </p>

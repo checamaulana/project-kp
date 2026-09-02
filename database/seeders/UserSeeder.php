@@ -33,11 +33,20 @@ class UserSeeder extends Seeder
         ]);
 
         User::updateOrCreate(['username' => 'kepala_unit'], [
-            'name' => 'Kepala Unit',
-            'email' => 'kepala@rsgm.unimus.ac.id',
+            'name' => 'Kepala Unit IT',
+            'email' => 'kepala.it@rsgm.unimus.ac.id',
             'password' => bcrypt('password'),
-            'unit_id' => Unit::where('kode', 'RS')->first()?->id ?? Unit::first()->id,
+            'unit_id' => Unit::where('kode', 'IT')->first()?->id ?? Unit::first()->id,
             'role' => RoleEnum::KEPALA_UNIT,
+            'status' => StatusUserEnum::ACTIVE,
+        ]);
+
+        User::updateOrCreate(['username' => 'staf_it'], [
+            'name' => 'Staf IT',
+            'email' => 'staf.it@rsgm.unimus.ac.id',
+            'password' => bcrypt('password'),
+            'unit_id' => Unit::where('kode', 'IT')->first()?->id ?? Unit::first()->id,
+            'role' => RoleEnum::STAF,
             'status' => StatusUserEnum::ACTIVE,
         ]);
     }

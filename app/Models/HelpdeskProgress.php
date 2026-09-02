@@ -6,21 +6,33 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class PelayananProgress extends Model
+class HelpdeskProgress extends Model
 {
     use HasFactory;
 
+    protected $table = 'helpdesk_progress';
+
+    public $timestamps = false;
+
     protected $fillable = [
-        'pelayanan_id',
+        'helpdesk_ticket_id',
         'user_id',
         'komentar',
         'status_sebelum',
         'status_sesudah',
+        'created_at',
     ];
 
-    public function pelayanan(): BelongsTo
+    protected function casts(): array
     {
-        return $this->belongsTo(Pelayanan::class);
+        return [
+            'created_at' => 'datetime',
+        ];
+    }
+
+    public function ticket(): BelongsTo
+    {
+        return $this->belongsTo(HelpdeskTicket::class, 'helpdesk_ticket_id');
     }
 
     public function user(): BelongsTo
