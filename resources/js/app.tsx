@@ -2,6 +2,7 @@ import { createInertiaApp } from '@inertiajs/react';
 import { Agentation } from 'agentation';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createRoot } from 'react-dom/client';
+import { Toaster } from '@/components/ui/sonner';
 import '../css/app.css';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
@@ -15,6 +16,7 @@ createInertiaApp({
         root.render(
             <>
                 <App {...props} />
+                <Toaster />
                 {import.meta.env.DEV && <Agentation />}
             </>,
         );

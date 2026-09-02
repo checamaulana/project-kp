@@ -1,9 +1,234 @@
 @import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+@custom-variant dark (&:is(.dark *));
 
 @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
+/* SF Pro is Apple's system font. Reference it first with platform fallbacks. */
 @theme {
     --font-sans:
-        'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+        'SF Pro Text', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'SF Pro', system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+        sans-serif;
+}
+
+@theme inline {
+    --color-success: oklch(0.62 0.17 145);
+    --color-success-foreground: oklch(0.985 0 0);
+    --color-warning: oklch(0.75 0.16 75);
+    --color-warning-foreground: oklch(0.265 0.03 75);
+    --font-heading: var(--font-sans);
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+
+    /* Type scale: 12, 13, 14, 24 with -0.15px tracking */
+    --text-2xs: 0.75rem; /* 12px */
+    --text-xs: 0.8125rem; /* 13px */
+    --text-sm: 0.875rem; /* 14px */
+    --text-display: 1.5rem; /* 24px */
+    --tracking-tight: -0.15px;
+
+    /* Radii: 8px nav, 16px cards, pill CTA */
+    --radius-sm: 0.5rem; /* 8px - nav */
+    --radius-md: 0.5rem; /* 8px - small elements */
+    --radius-lg: 1rem; /* 16px - cards */
+    --radius-xl: 1rem; /* 16px */
+    --radius-2xl: 9999px; /* pill - CTA */
+    --radius-3xl: 9999px; /* pill */
+    --radius-4xl: 9999px; /* pill */
+}
+
+:root {
+    --background: #ffffff;
+    --foreground: #292929; /* primary text */
+    --card: #ffffff;
+    --card-foreground: #292929;
+    --popover: #ffffff;
+    --popover-foreground: #292929;
+    --primary: #292929; /* dark, neutral CTA */
+    --primary-foreground: #ffffff;
+    --secondary: #f5f5f5;
+    --secondary-foreground: #292929;
+    --muted: #f5f5f5;
+    --muted-foreground: #5d5d5d; /* secondary text */
+    --accent: #f5f5f5;
+    --accent-foreground: #292929;
+    --destructive: #dc2626;
+    --border: #e5e5e5;
+    --input: #e5e5e5;
+    --ring: #9e9e9e;
+    --chart-1: #292929;
+    --chart-2: #5d5d5d;
+    --chart-3: #9e9e9e;
+    --chart-4: #bdbdbd;
+    --chart-5: #e5e5e5;
+    --radius: 1rem; /* 16px default for cards */
+    --sidebar: #ffffff;
+    --sidebar-foreground: #292929;
+    --sidebar-primary: #292929;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #f5f5f5;
+    --sidebar-accent-foreground: #292929;
+    --sidebar-border: #e5e5e5;
+    --sidebar-ring: #9e9e9e;
+}
+
+.dark {
+    --background: #0a0a0a;
+    --foreground: #f5f5f5;
+    --card: #141414;
+    --card-foreground: #f5f5f5;
+    --popover: #141414;
+    --popover-foreground: #f5f5f5;
+    --primary: #f5f5f5;
+    --primary-foreground: #0a0a0a;
+    --secondary: #1f1f1f;
+    --secondary-foreground: #f5f5f5;
+    --muted: #1f1f1f;
+    --muted-foreground: #9e9e9e;
+    --accent: #1f1f1f;
+    --accent-foreground: #f5f5f5;
+    --destructive: #ef4444;
+    --border: #2a2a2a;
+    --input: #2a2a2a;
+    --ring: #5d5d5d;
+    --sidebar: #0a0a0a;
+    --sidebar-foreground: #f5f5f5;
+    --sidebar-primary: #f5f5f5;
+    --sidebar-primary-foreground: #0a0a0a;
+    --sidebar-accent: #1f1f1f;
+    --sidebar-accent-foreground: #f5f5f5;
+    --sidebar-border: #2a2a2a;
+    --sidebar-ring: #5d5d5d;
+}
+
+@layer base {
+    * {
+        @apply border-border outline-ring/50;
+    }
+    body {
+        @apply bg-background text-foreground;
+        font-family:
+            'SF Pro Text',
+            'SF Pro Display',
+            -apple-system,
+            BlinkMacSystemFont,
+            system-ui,
+            sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        letter-spacing: -0.15px;
+    }
+    html {
+        @apply font-sans;
+        font-family:
+            'SF Pro Text',
+            'SF Pro Display',
+            -apple-system,
+            BlinkMacSystemFont,
+            system-ui,
+            sans-serif;
+    }
+    /* Type scale: 12, 13, 14, 24 with -0.15px tracking */
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        font-family:
+            'SF Pro Display',
+            'SF Pro Text',
+            -apple-system,
+            BlinkMacSystemFont,
+            system-ui,
+            sans-serif;
+        letter-spacing: -0.15px;
+        color: #292929;
+    }
+    .text-display {
+        font-size: 24px;
+        line-height: 1.25;
+        letter-spacing: -0.15px;
+        font-weight: 600;
+    }
+    .text-meta {
+        font-size: 12px;
+        line-height: 1.4;
+        letter-spacing: -0.15px;
+        font-weight: 400;
+        color: #5d5d5d;
+    }
+    .text-eyebrow {
+        font-size: 13px;
+        line-height: 1.4;
+        letter-spacing: -0.15px;
+        font-weight: 400;
+        color: #5d5d5d;
+    }
+    .text-body {
+        font-size: 14px;
+        line-height: 1.45;
+        letter-spacing: -0.15px;
+        font-weight: 400;
+        color: #292929;
+    }
+    .text-faint {
+        color: #9e9e9e;
+    }
+    /* 14px icons in nav */
+    .icon-nav {
+        width: 14px;
+        height: 14px;
+        flex-shrink: 0;
+    }
+    /* 20px icons in cards */
+    .icon-card {
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+    }
+    /* Pill CTA radius */
+    .rounded-pill {
+        border-radius: 9999px;
+    }
+    /* Nav radius 8px */
+    .rounded-nav {
+        border-radius: 8px;
+    }
+    /* Card radius 16px */
+    .rounded-card {
+        border-radius: 16px;
+    }
 }

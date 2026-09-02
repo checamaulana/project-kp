@@ -1,22 +1,138 @@
 # Lessons Learned — SIM SURAT RSGM UNIMUS
 
-## 2026-08-27 — Planning Phase
+## 2026-08-28 — Implementation Phase
 
-### Insights from Interrogation
-1. **Jangan asumsikan alur disposisi**: Banyak variasi (multi-level vs single, free forward vs approval-based). Harus ditanyakan eksplisit.
-2. **Kontradiksi jawaban**: User awalnya bilang "no register publik" lalu berubah. Wajib konfirmasi ulang jawaban kontradiktif.
-3. **Username dengan role**: User awalnya sebut "username mencakup role" tapi ternyata maksudnya role dipilih saat register, bukan format username dengan prefix.
-4. **Konteks RSGM spesifik**: Referensi screenshot dari SIMSURAT lama + Farmagitechs/Evoluz. Wajib klarifikasi apakah modul berbeda atau sistem sama.
+### Key Insights
 
-### Best Practices yang Diterapkan
-- Interogasi bertingkat (batch 5-5 pertanyaan, dari foundational ke detail)
-- Setiap jawaban langsung dikonfirmasi implikasinya
-- Opsi jawaban saling eksklusif dengan "recommended" flag
-- Free text input sebagai escape hatch
-- Tidak langsung tulis dokumentasi sampai semua asumsi terkunci
+1. **Migration file conflict**: When multiple `php artisan make:migration` runs happen at the same minute, filenames collide. Always check for existing files first.
+2. **Middleware alias 'active' must be registered**: Laravel 12 requires explicit alias for `auth:active` middleware pattern to work in tests. Without it, `Target class [active] does not exist` error.
+3. **Inertia + Wayfinder**: Auto-generated routes in `@/actions` and `@/routes` work seamlessly.
+4. **Vite v7 with Wayfinder**: Builds successfully, no issues with route generation during build.
+5. **Modul Pelayanan → IT Helpdesk**: User showed new screenshot clarifying scope is simple 2-page IT helpdesk.
 
-### Hal yang Bisa Diperbaiki di Masa Depan
-- Tanyakan soal **kebutuhan training** user (admin/operator).
-- Tanyakan soal **budget** untuk server/procurement.
-- Tanyakan soal **timeline launch** yang diharapkan.
-- Tanyakan soal **stakeholder lain** yang perlu di-interview (kepala TU, rektor).
+### Best Practices Applied
+
+- **Service layer pattern**: All business logic in dedicated services
+- **Enum-backed enums**: PHP 8.1+ backed enums for type safety
+- **FormRequest classes**: All validation in dedicated request classes
+- **Policy classes**: Authorization via policies
+- **Observer pattern**: Audit logging via model observers
+- **Soft deletes**: Surat tables use `SoftDeletes` trait for 30-day recovery
+
+### Common Pitfalls to Avoid
+
+- Don't forget to register middleware aliases in `bootstrap/app.php` for `auth:custom` to work
+- Don't use `Pelayanan` model — it was replaced with `HelpdeskTicket`
+- For PUT/PATCH with file, use `post(url, { _method: 'put', forceFormData: true })` workaround
+- Make sure all relations use proper foreign key names (e.g., `unit_penerima_id`, `kepada_user_id`)
+
+### Things That Could Be Improved
+
+1. **Email notifications**: Currently only `database` channel, not `mail`. Add SMTP config for production.
+2. **Tighter typing**: Pages with pagination use `any` for `links` array.
+3. **Tests coverage**: Only auth tests exist. Helpdesk, Surat tests would be valuable.
+4. **File upload validation**: Could add virus scanning, image dimension checks.
+
+### ⚠️ CRITICAL: No Global `route()` Helper
+
+**Never use `route('xxx')` global helper in this project.** This project uses **Wayfinder** which generates type-safe route imports in `@/actions/*` and `@/routes/*`. Using the global `route()` (Ziggy-style) will fail with `ReferenceError: route is not defined` and the React tree will not render, producing a blank page.
+
+**Always** import from Wayfinder:
+
+```tsx
+// ❌ WRONG — produces blank page
+import { Link } from '@inertiajs/react';
+<Link href={route('dashboard')}>Dashboard</Link>;
+
+// ✅ CORRECT — use Wayfinder
+import { Link } from '@inertiajs/react';
+import { dashboard } from '@/routes';
+<Link href={dashboard.url()}>Dashboard</Link>;
+```
+
+For Inertia `post()`, `patch()`, etc. (from `useForm`):
+
+```tsx
+// ❌ WRONG
+post(route('login'));
+
+// ✅ CORRECT
+post(login.url());
+```
+
+Files that need Wayfinder imports when adding new routes:
+
+- Any page in `resources/js/pages/**`
+- Any component in `resources/js/components/**`
+- Common components (AppLayout, Header, Sidebar, YearToggle, NotificationBell)
+
+---
+
+## 2026-08-28 — `Button asChild` Causes Base UI Error #31 (Blank Page)
+
+### Bug
+The "Super Admin" user dropdown in the header caused the page to **turn blank** when clicked. Browser console showed:
+
+```
+Base UI error #31
+MenuGroupContext is missing. Menu group parts must be used within <Menu.Group> or <Menu.RadioGroup>.
+```
+
+### Root Cause
+The project uses `@base-ui/react` (NOT Radix UI). The base-ui `Button` primitive does **not** support the Radix-style `asChild` prop. The code was using:
+
+```tsx
+<DropdownMenuTrigger asChild>
+  <Button variant="ghost" className="gap-2">
+    <Avatar />
+  </Button>
+</DropdownMenuTrigger>
+```
+
+This rendered invalid HTML: `<button><button>...</button></button>` (nested buttons). When clicked, base-ui threw error #31 and the React tree crashed, making the page blank.
+
+The same pattern (`<Button asChild><Link>...</Link></Button>`) was used in 19+ files across the codebase, producing nested `<button><a>...</a></button>` HTML that broke the link click and made the link unclickable.
+
+### Fix
+1. Removed all `<Button asChild>` patterns from the codebase
+2. Created dedicated `ButtonLink` and `ButtonAnchor` components that render proper `<a>` elements (via Inertia `Link` for SPA navigation, plain `<a>` for downloads/external links)
+3. Updated `Header.tsx` to use the base-ui pattern: pass `className` directly to `DropdownMenuTrigger` (which renders its own button) and use the `render` prop for `DropdownMenuItem` to swap the underlying element
+4. Wrapped the `DropdownMenuLabel` in `DropdownMenuGroup` to satisfy base-ui's `MenuGroupContext` requirement
+
+### Components
+[`resources/js/components/ui/button.tsx`](resources/js/components/ui/button.tsx) exports three button primitives:
+
+- `Button` — plain `<button>` (no asChild)
+- `ButtonLink` — Inertia `<Link>` styled as button (renders as `<a>` for SPA navigation)
+- `ButtonAnchor` — plain `<a>` styled as button (for downloads, target="_blank", external links)
+
+### Usage
+```tsx
+// ❌ WRONG — broken, link inside button
+<Button asChild>
+  <Link href="/somewhere">Click me</Link>
+</Button>
+
+// ✅ CORRECT — for Inertia links
+<ButtonLink href="/somewhere">Click me</ButtonLink>
+
+// ✅ CORRECT — for plain anchors
+<ButtonAnchor href="/file.pdf" target="_blank">Download</ButtonAnchor>
+
+// ✅ CORRECT — dropdown trigger with base-ui
+<DropdownMenuTrigger className={cn(buttonVariants({ variant: 'ghost' }), 'gap-2')}>
+  <Avatar />
+  <span>User</span>
+</DropdownMenuTrigger>
+
+// ✅ CORRECT — dropdown item with Link
+<DropdownMenuItem render={<Link href="/profile" />}>
+  <UserIcon />
+  Profil
+</DropdownMenuItem>
+```
+
+### Why base-ui Differs from Radix
+- Radix uses `asChild` to merge the consumer's element with the trigger's behavior
+- base-ui uses `render={<CustomElement />}` for the same purpose
+- For base-ui `Menu.Trigger`, the trigger itself is always a `<button>` — pass `className` to style it directly, do NOT nest another button inside

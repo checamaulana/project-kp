@@ -2,83 +2,67 @@
 
 namespace App\Models;
 
+use App\Enums\AksiDisposisiEnum;
+use App\Enums\StatusDisposisiEnum;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Disposisi extends Model
 {
-    protected $table = 'disposisis';
+    use HasFactory;
 
     protected $fillable = [
-        'surat_id',
-        'dari_unit_id',
-        'ke_unit_id',
+        'surat_masuk_id',
+        'parent_id',
         'dari_user_id',
-        'ke_user_id',
-        'instruksi',
-        'tanggal_disposisi',
-        'batas_waktu',
+        'kepada_user_id',
+        'kepada_unit_id',
+        'isi',
+        'aksi',
         'status',
-        'catatan',
+        'dibaca_at',
+        'selesai_at',
     ];
 
-    protected $casts = [
-        'tanggal_disposisi' => 'date',
-        'batas_waktu' => 'date',
-    ];
-
-    /*
-    |--------------------------------------------------------------------------
-    | Relasi ke Surat
-    |--------------------------------------------------------------------------
-    */
-
-    public function surat(): BelongsTo
+    protected function casts(): array
     {
-        return $this->belongsTo(Surat::class);
+        return [
+            'dibaca_at' => 'datetime',
+            'selesai_at' => 'datetime',
+            'aksi' => AksiDisposisiEnum::class,
+            'status' => StatusDisposisiEnum::class,
+        ];
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Relasi ke Unit Asal
-    |--------------------------------------------------------------------------
-    */
-
-    public function dariUnit(): BelongsTo
+    public function suratMasuk(): BelongsTo
     {
-        return $this->belongsTo(
-            Unit::class,
-            'dari_unit_id'
-        );
+        return $this->belongsTo(SuratMasuk::class);
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Relasi ke Unit Tujuan
-    |--------------------------------------------------------------------------
-    */
-
-    public function keUnit(): BelongsTo
+    public function parent(): BelongsTo
     {
-        return $this->belongsTo(
-            Unit::class,
-            'ke_unit_id'
-        );
+        return $this->belongsTo(Disposisi::class, 'parent_id');
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | User pengirim disposisi
-    |--------------------------------------------------------------------------
-    */
+    public function children(): HasMany
+    {
+        return $this->hasMany(Disposisi::class, 'parent_id');
+    }
 
     public function dariUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'dari_user_id');
     }
 
-    public function keUser(): BelongsTo
+    public function kepadaUser(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'ke_user_id');
+        return $this->belongsTo(User::class, 'kepada_user_id');
+    }
+
+    public function kepadaUnit(): BelongsTo
+    {
+        return $this->belongsTo(Unit::class, 'kepada_unit_id');
     }
 }
