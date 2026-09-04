@@ -4,6 +4,8 @@ use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\UnitController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Auth\NewPasswordController;
+use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DisposisiController;
@@ -23,11 +25,16 @@ Route::middleware('guest')->group(function (): void {
     Route::post('login', [AuthenticatedSessionController::class, 'store']);
     Route::get('register', [RegisteredUserController::class, 'create'])->name('register');
     Route::post('register', [RegisteredUserController::class, 'store']);
+
+    Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])->name('password.request');
+    Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])->name('password.email');
+    Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])->name('password.reset');
+    Route::post('reset-password', [NewPasswordController::class, 'store'])->name('password.store');
 });
 
-Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
-
 Route::middleware(['auth', 'active'])->group(function (): void {
+    Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
+
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::post('session/set-year', [SessionController::class, 'setYear'])->name('session.set-year');
@@ -62,7 +69,7 @@ Route::middleware(['auth', 'active'])->group(function (): void {
     Route::get('/rekap/surat-keluar/export', [RekapController::class, 'exportSuratKeluar'])->name('rekap.surat-keluar.export');
 
     // IT Helpdesk
-    Route::resource('helpdesk', HelpdeskController::class)->except(['edit', 'update']);
+    Route::resource('helpdesk', HelpdeskController::class)->except(['edit', 'update', 'destroy']);
     Route::post('helpdesk/{helpdesk}/proses', [HelpdeskController::class, 'proses'])->name('helpdesk.proses');
     Route::post('helpdesk/{helpdesk}/selesaikan', [HelpdeskController::class, 'selesaikan'])->name('helpdesk.selesaikan');
     Route::post('helpdesk/{helpdesk}/tutup', [HelpdeskController::class, 'tutup'])->name('helpdesk.tutup');
@@ -76,12 +83,12 @@ Route::middleware(['auth', 'active'])->group(function (): void {
 
     // Admin (superadmin only)
     Route::prefix('admin')->name('admin.')->middleware('role:superadmin')->group(function (): void {
-        Route::resource('users', UserController::class);
+        Route::resource('users', UserController::class)->except(['show']);
         Route::get('users-pending', [UserController::class, 'pending'])->name('users.pending');
         Route::post('users/{user}/approve', [UserController::class, 'approve'])->name('users.approve');
         Route::post('users/{user}/reject', [UserController::class, 'reject'])->name('users.reject');
 
-        Route::resource('units', UnitController::class);
+        Route::resource('units', UnitController::class)->except(['show']);
         Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
     });
 });

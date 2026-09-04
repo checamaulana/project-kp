@@ -1,11 +1,13 @@
+import { useForm } from '@inertiajs/react';
+import { Loader2, Save } from 'lucide-react';
 import AppLayout from '@/components/common/AppLayout';
-import { Button, ButtonLink } from '@/components/ui/button';;
+import { PageHeader } from '@/components/common/PageHeader';
+import { Button, ButtonLink } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Link, useForm } from '@inertiajs/react';
-import { ArrowLeft, Loader2, Save } from 'lucide-react';
+import { index, store } from '@/routes/surat-masuk';
 
 interface Props {
     indeksOptions: Array<{ id: number; kode: string; nama: string }>;
@@ -27,17 +29,16 @@ export default function SuratMasukCreate({ indeksOptions, units }: Props) {
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        post('/surat-masuk', { forceFormData: true });
+        post(store.url(), { forceFormData: true });
     };
 
     return (
         <AppLayout>
-            <div className="mb-6 flex items-center gap-4">
-                <ButtonLink href="/surat-masuk" variant="ghost" size="icon" aria-label="Kembali">
-                    <ArrowLeft className="icon-nav" />
-                </ButtonLink>
-                <h1 className="text-2xl font-bold">Tambah Surat Masuk</h1>
-            </div>
+            <PageHeader
+                title="Tambah Surat Masuk"
+                description="Catat surat masuk baru ke arsip tahun aktif"
+                breadcrumb={[{ label: 'Surat Masuk', href: index.url() }, { label: 'Tambah' }]}
+            />
 
             <form onSubmit={submit} className="max-w-3xl space-y-4 rounded-lg border bg-card p-6">
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -135,7 +136,7 @@ export default function SuratMasukCreate({ indeksOptions, units }: Props) {
                 </div>
 
                 <div className="flex justify-end gap-2">
-                    <ButtonLink href="/surat-masuk" variant="outline">
+                    <ButtonLink href={index.url()} variant="outline">
                         Batal
                     </ButtonLink>
                     <Button type="submit" disabled={processing}>

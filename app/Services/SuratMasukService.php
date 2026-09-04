@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Enums\StatusSuratMasukEnum;
+use App\Models\SuratKeluar;
 use App\Models\SuratMasuk;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -35,7 +37,7 @@ class SuratMasukService
                 'file_name' => $fileName,
                 'unit_penerima_id' => $data['unit_penerima_id'],
                 'created_by' => $userId,
-                'status' => 'aktif',
+                'status' => StatusSuratMasukEnum::AKTIF,
             ]);
         });
     }
@@ -44,7 +46,9 @@ class SuratMasukService
     {
         return DB::transaction(function () use ($surat, $data, $file, $userId) {
             if ($file) {
-                Storage::disk('local')->delete($surat->file_path);
+                if ($surat->file_path && Storage::disk('local')->exists($surat->file_path)) {
+                    Storage::disk('local')->delete($surat->file_path);
+                }
                 $fileName = $file->getClientOriginalName();
                 $fileHash = $file->hashName();
                 $filePath = $file->storeAs("surat/{$surat->tahun}", $fileHash, 'local');
@@ -75,13 +79,28 @@ class SuratMasukService
     public function purgeOldTrashed(): int
     {
         $threshold = now()->subDays(30);
-        $trashed = SuratMasuk::onlyTrashed()->where('deleted_at', '<', $threshold)->get();
+        $purged = 0;
 
-        foreach ($trashed as $surat) {
-            Storage::disk('local')->delete($surat->file_path);
-            $surat->forceDelete();
-        }
+        SuratMasuk::onlyTrashed()->where('deleted_at', '<', $threshold)->chunkById(100, function ($trashed) use (&$purged) {
+            foreach ($trashed as $surat) {
+                if ($surat->file_path && Storage::disk('local')->exists($surat->file_path)) {
+                    Storage::disk('local')->delete($surat->file_path);
+                }
+                $surat->forceDelete();
+                $purged++;
+            }
+        });
 
-        return $trashed->count();
+        SuratKeluar::onlyTrashed()->where('deleted_at', '<', $threshold)->chunkById(100, function ($trashed) use (&$purged) {
+            foreach ($trashed as $surat) {
+                if ($surat->file_path && Storage::disk('local')->exists($surat->file_path)) {
+                    Storage::disk('local')->delete($surat->file_path);
+                }
+                $surat->forceDelete();
+                $purged++;
+            }
+        });
+
+        return $purged;
     }
 }

@@ -1,10 +1,14 @@
-import AppLayout from '@/components/common/AppLayout';
-import { Button, ButtonLink } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Link, router } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { Plus, Eye, AlertCircle, Clock, CheckCircle, Wrench, Paperclip } from 'lucide-react';
 import { useState } from 'react';
+import AppLayout from '@/components/common/AppLayout';
+import { PageHeader } from '@/components/common/PageHeader';
+import { Pagination } from '@/components/common/Pagination';
+import { StatCard } from '@/components/common/StatCard';
+import { Button, ButtonLink } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { index, create, show } from '@/routes/helpdesk';
 
 interface Ticket {
     id: number;
@@ -51,67 +55,39 @@ export default function HelpdeskIndex({ tickets, filters, counts }: Props) {
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
-        router.get('/helpdesk', { ...filters, search }, { preserveState: true });
+        router.get(index.url(), { ...filters, search }, { preserveState: true });
     };
 
     return (
         <AppLayout>
-            <div className="mb-6 flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold">IT Helpdesk</h1>
-                    <p className="text-sm text-muted-foreground">Laporan & penanganan kendala IT RSGM</p>
-                </div>
-                <ButtonLink href="/helpdesk/create">
-                    <Plus className="icon-nav" />
-                    Lapor Kendala
-                </ButtonLink>
-            </div>
+            <PageHeader
+                title="IT Helpdesk"
+                description="Laporan & penanganan kendala IT RSGM"
+                actions={
+                    <ButtonLink href={create.url()}>
+                        <Plus className="icon-nav" />
+                        Lapor Kendala
+                    </ButtonLink>
+                }
+            />
 
             <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <Card>
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium text-muted-foreground">Tiket Baru</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="flex items-center gap-2 text-3xl font-bold text-red-600">
-                            <AlertCircle className="h-6 w-6" />
-                            {counts.baru}
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium text-muted-foreground">Diproses</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="flex items-center gap-2 text-3xl font-bold text-yellow-600">
-                            <Clock className="h-6 w-6" />
-                            {counts.diproses}
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium text-muted-foreground">Selesai</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="flex items-center gap-2 text-3xl font-bold text-green-600">
-                            <CheckCircle className="h-6 w-6" />
-                            {counts.selesai}
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium text-muted-foreground">Total</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="flex items-center gap-2 text-3xl font-bold">
-                            <Wrench className="h-6 w-6 text-blue-600" />
-                            {tickets.total}
-                        </div>
-                    </CardContent>
-                </Card>
+                <StatCard
+                    label="Tiket Baru"
+                    value={counts.baru}
+                    icon={<AlertCircle className="icon-md" />}
+                    accent="red"
+                    sublabel="Menunggu diproses"
+                />
+                <StatCard label="Diproses" value={counts.diproses} icon={<Clock className="icon-md" />} accent="amber" sublabel="Sedang ditangani" />
+                <StatCard
+                    label="Selesai"
+                    value={counts.selesai}
+                    icon={<CheckCircle className="icon-md" />}
+                    accent="green"
+                    sublabel="Penanganan selesai"
+                />
+                <StatCard label="Total" value={tickets.total} icon={<Wrench className="icon-md" />} accent="blue" sublabel="Keseluruhan tiket" />
             </div>
 
             <form onSubmit={handleSearch} className="mb-4 flex flex-wrap gap-2">
@@ -122,28 +98,38 @@ export default function HelpdeskIndex({ tickets, filters, counts }: Props) {
                     onChange={(e) => setSearch(e.target.value)}
                     className="max-w-sm"
                 />
-                <select
-                    value={filters.status ?? ''}
-                    onChange={(e) => router.get('/helpdesk', { ...filters, status: e.target.value || undefined })}
-                    className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+                <Select
+                    value={filters.status ?? 'all'}
+                    onValueChange={(v: string | null) => router.get(index.url(), { ...filters, status: v === 'all' ? undefined : (v ?? undefined) })}
                 >
-                    <option value="">Semua Status</option>
-                    <option value="baru">Baru</option>
-                    <option value="diproses">Diproses</option>
-                    <option value="selesai">Selesai</option>
-                    <option value="ditutup">Ditutup</option>
-                </select>
-                <select
-                    value={filters.kategori ?? ''}
-                    onChange={(e) => router.get('/helpdesk', { ...filters, kategori: e.target.value || undefined })}
-                    className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+                    <SelectTrigger className="h-10">
+                        <SelectValue placeholder="Semua Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">Semua Status</SelectItem>
+                        <SelectItem value="baru">Baru</SelectItem>
+                        <SelectItem value="diproses">Diproses</SelectItem>
+                        <SelectItem value="selesai">Selesai</SelectItem>
+                        <SelectItem value="ditutup">Ditutup</SelectItem>
+                    </SelectContent>
+                </Select>
+                <Select
+                    value={filters.kategori ?? 'all'}
+                    onValueChange={(v: string | null) =>
+                        router.get(index.url(), { ...filters, kategori: v === 'all' ? undefined : (v ?? undefined) })
+                    }
                 >
-                    <option value="">Semua Kategori</option>
-                    <option value="hardware">Hardware</option>
-                    <option value="jaringan">Jaringan</option>
-                    <option value="aplikasi_simrs">Aplikasi SIM-RS</option>
-                    <option value="lainnya">Lainnya</option>
-                </select>
+                    <SelectTrigger className="h-10">
+                        <SelectValue placeholder="Semua Kategori" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">Semua Kategori</SelectItem>
+                        <SelectItem value="hardware">Hardware</SelectItem>
+                        <SelectItem value="jaringan">Jaringan</SelectItem>
+                        <SelectItem value="aplikasi_simrs">Aplikasi SIM-RS</SelectItem>
+                        <SelectItem value="lainnya">Lainnya</SelectItem>
+                    </SelectContent>
+                </Select>
                 <Button type="submit" variant="secondary">
                     Filter
                 </Button>
@@ -174,7 +160,7 @@ export default function HelpdeskIndex({ tickets, filters, counts }: Props) {
                                 tickets.data.map((t) => (
                                     <tr key={t.id} className="border-t">
                                         <td className="p-3 font-mono font-medium">{t.kode_tiket}</td>
-                                        <td className="p-3">{t.unit.nama}</td>
+                                        <td className="p-3">{t.unit?.nama ?? '-'}</td>
                                         <td className="p-3 text-xs">{kategoriLabel[t.kategori]}</td>
                                         <td className="p-3 text-xs capitalize">{t.jenis_permintaan.replace('_', ' ')}</td>
                                         <td className="p-3">
@@ -188,7 +174,7 @@ export default function HelpdeskIndex({ tickets, filters, counts }: Props) {
                                             <span className={`rounded px-2 py-1 text-xs font-medium ${statusColor[t.status]}`}>{t.status}</span>
                                         </td>
                                         <td className="p-3">
-                                            <ButtonLink href={`/helpdesk/${t.id}`} size="icon" variant="ghost" title="Lihat">
+                                            <ButtonLink href={show({ helpdesk: t.id }).url} size="icon" variant="ghost" title="Lihat">
                                                 <Eye className="icon-nav" />
                                             </ButtonLink>
                                         </td>
@@ -200,24 +186,7 @@ export default function HelpdeskIndex({ tickets, filters, counts }: Props) {
                 </div>
             </div>
 
-            {tickets.last_page > 1 && (
-                <div className="mt-4 flex items-center justify-between">
-                    <p className="text-sm text-muted-foreground">Total: {tickets.total} tiket</p>
-                    <div className="flex gap-1">
-                        {tickets.links.map((link, i) =>
-                            link.url ? (
-                                <ButtonLink key={i} href={link.url} size="sm" variant={link.active ? 'default' : 'outline'}>
-                                    <span dangerouslySetInnerHTML={{ __html: link.label }} />
-                                </ButtonLink>
-                            ) : (
-                                <Button key={i} size="sm" variant={link.active ? 'default' : 'outline'} disabled>
-                                    <span dangerouslySetInnerHTML={{ __html: link.label }} />
-                                </Button>
-                            )
-                        )}
-                    </div>
-                </div>
-            )}
+            <Pagination links={tickets.links} total={tickets.total} itemLabel="tiket" />
         </AppLayout>
     );
 }

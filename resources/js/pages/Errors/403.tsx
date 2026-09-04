@@ -1,6 +1,6 @@
-import { Link } from '@inertiajs/react';
-import { Button, ButtonLink } from '@/components/ui/button';
 import { Home, ArrowLeft } from 'lucide-react';
+import { Button, ButtonLink } from '@/components/ui/button';
+import { dashboard } from '@/routes';
 
 interface Props {
     status?: number;
@@ -15,7 +15,7 @@ export default function Error403({ message }: Props) {
                 <p className="mt-2 text-xl font-semibold">Akses Ditolak</p>
                 <p className="mt-2 text-sm text-muted-foreground">{message ?? 'Anda tidak memiliki akses ke halaman ini.'}</p>
                 <div className="mt-6 flex justify-center gap-2">
-                    <ButtonLink href="/dashboard">
+                    <ButtonLink href={dashboard.url()}>
                         <Home className="icon-nav" />
                         Dashboard
                     </ButtonLink>

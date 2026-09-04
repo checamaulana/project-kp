@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\HelpdeskStatusEnum;
+use App\Enums\StatusDisposisiEnum;
 use App\Models\Disposisi;
 use App\Models\HelpdeskTicket;
 use App\Models\SuratKeluar;
@@ -18,6 +19,9 @@ class DashboardController extends Controller
         $user = $request->user();
         $activeYear = session('active_year', now()->year);
 
+        $helpdeskBase = HelpdeskTicket::query()
+            ->when(! $user->canHandleHelpdesk(), fn ($q) => $q->where('pelapor_id', $user->id));
+
         $stats = [
             'surat_masuk' => SuratMasuk::where('unit_penerima_id', $user->unit_id)
                 ->where('tahun', $activeYear)
@@ -26,13 +30,11 @@ class DashboardController extends Controller
                 ->where('tahun', $activeYear)
                 ->count(),
             'disposisi_pending' => Disposisi::where('kepada_user_id', $user->id)
-                ->where('status', 'pending')
+                ->where('status', StatusDisposisiEnum::PENDING)
                 ->count(),
-            'helpdesk_baru' => $user->canHandleHelpdesk()
-                ? HelpdeskTicket::where('status', HelpdeskStatusEnum::BARU)->count()
-                : HelpdeskTicket::where('pelapor_id', $user->id)
-                    ->where('status', HelpdeskStatusEnum::BARU)
-                    ->count(),
+            'helpdesk_baru' => (clone $helpdeskBase)->where('status', HelpdeskStatusEnum::BARU)->count(),
+            'helpdesk_diproses' => (clone $helpdeskBase)->where('status', HelpdeskStatusEnum::DIPROSES)->count(),
+            'helpdesk_selesai' => (clone $helpdeskBase)->where('status', HelpdeskStatusEnum::SELESAI)->count(),
         ];
 
         $recentSuratMasuk = SuratMasuk::with(['unitPenerima', 'indeks'])

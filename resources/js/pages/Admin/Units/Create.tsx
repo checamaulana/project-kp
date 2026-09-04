@@ -1,10 +1,12 @@
+import { useForm } from '@inertiajs/react';
+import { ArrowLeft, Loader2, Save } from 'lucide-react';
 import AppLayout from '@/components/common/AppLayout';
-import { Button, ButtonLink } from '@/components/ui/button';;
+import { PageHeader } from '@/components/common/PageHeader';
+import { Button, ButtonLink } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Link, useForm } from '@inertiajs/react';
-import { ArrowLeft, Loader2, Save } from 'lucide-react';
+import { store, index } from '@/routes/admin/units';
 
 export default function AdminUnitsCreate() {
     const { data, setData, post, processing } = useForm({
@@ -16,17 +18,19 @@ export default function AdminUnitsCreate() {
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        post('/admin/units');
+        post(store.url());
     };
 
     return (
         <AppLayout>
-            <div className="mb-6 flex items-center gap-4">
-                <ButtonLink href="/admin/units" variant="ghost" size="icon" aria-label="Kembali">
-                    <ArrowLeft className="icon-nav" />
-                </ButtonLink>
-                <h1 className="text-2xl font-bold">Tambah Unit</h1>
-            </div>
+            <PageHeader
+                title="Tambah Unit"
+                actions={
+                    <ButtonLink href={index.url()} variant="ghost" size="icon" aria-label="Kembali">
+                        <ArrowLeft className="icon-nav" />
+                    </ButtonLink>
+                }
+            />
 
             <form onSubmit={submit} className="max-w-xl space-y-4 rounded-lg border bg-card p-6">
                 <div className="space-y-2">
@@ -46,7 +50,7 @@ export default function AdminUnitsCreate() {
                     Aktif
                 </label>
                 <div className="flex justify-end gap-2">
-                    <ButtonLink href="/admin/units" variant="outline">
+                    <ButtonLink href={index.url()} variant="outline">
                         Batal
                     </ButtonLink>
                     <Button type="submit" disabled={processing}>

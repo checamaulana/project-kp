@@ -51,7 +51,7 @@ class NomorSuratGenerator
             return '';
         }
 
-        $kodeIndeks = $indeks->kode.($kodeTuranan = $kodeTurunan ? '.'.$kodeTurunan : '');
+        $kodeIndeks = $indeks->kode.($kodeTurunan ? '.'.$kodeTurunan : '');
         $lastNo = SuratKeluar::where('tahun', $tahun)
             ->where('unit_pembuat_id', $unitId)
             ->max('no_urut');

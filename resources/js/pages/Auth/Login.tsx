@@ -1,10 +1,11 @@
 import { useForm } from '@inertiajs/react';
+import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2 } from 'lucide-react';
 import { login, register } from '@/routes';
+import { request as passwordRequest } from '@/routes/password';
 
 interface LoginForm {
     username: string;
@@ -34,24 +35,38 @@ export default function Login() {
                 <CardContent>
                     <form onSubmit={submit} className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="username" className="text-eyebrow text-foreground">Username</Label>
+                            <Label htmlFor="username" className="text-eyebrow text-foreground">
+                                Username
+                            </Label>
                             <Input id="username" value={data.username} onChange={(e) => setData('username', e.target.value)} autoFocus />
                             {errors.username && <p className="text-meta text-destructive">{errors.username}</p>}
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="password" className="text-eyebrow text-foreground">Password</Label>
+                            <div className="flex items-center justify-between">
+                                <Label htmlFor="password" className="text-eyebrow text-foreground">
+                                    Password
+                                </Label>
+                                <a href={passwordRequest.url()} className="text-eyebrow text-muted-foreground underline underline-offset-4">
+                                    Lupa password?
+                                </a>
+                            </div>
                             <Input id="password" type="password" value={data.password} onChange={(e) => setData('password', e.target.value)} />
                             {errors.password && <p className="text-meta text-destructive">{errors.password}</p>}
                         </div>
-                        <label className="flex items-center gap-2 text-body text-foreground">
-                            <input type="checkbox" checked={data.remember} onChange={(e) => setData('remember', e.target.checked)} className="rounded-nav" />
+                        <label className="text-body flex items-center gap-2 text-foreground">
+                            <input
+                                type="checkbox"
+                                checked={data.remember}
+                                onChange={(e) => setData('remember', e.target.checked)}
+                                className="rounded-nav"
+                            />
                             Ingat saya
                         </label>
                         <Button type="submit" className="w-full" disabled={processing}>
                             {processing && <Loader2 className="icon-nav animate-spin" />}
                             Masuk
                         </Button>
-                        <p className="text-center text-eyebrow text-muted-foreground">
+                        <p className="text-eyebrow text-center text-muted-foreground">
                             Belum punya akun?{' '}
                             <a href={register.url()} className="text-foreground underline underline-offset-4">
                                 Daftar

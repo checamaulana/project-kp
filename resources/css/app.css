@@ -1,25 +1,43 @@
 @import 'tailwindcss';
-@import 'tw-animate-css';
-@import 'shadcn/tailwind.css';
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
 @custom-variant dark (&:is(.dark *));
 
 @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
-/* SF Pro is Apple's system font. Reference it first with platform fallbacks. */
+/* =========================================================
+   MODERN CLINICAL GREEN HEALTHCARE SAAS — DESIGN TOKENS
+   Inter typeface, sophisticated medical green palette
+   ========================================================= */
+
 @theme {
     --font-sans:
-        'SF Pro Text', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'SF Pro', system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
-        sans-serif;
+        'Inter', 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 }
 
 @theme inline {
-    --color-success: oklch(0.62 0.17 145);
-    --color-success-foreground: oklch(0.985 0 0);
-    --color-warning: oklch(0.75 0.16 75);
-    --color-warning-foreground: oklch(0.265 0.03 75);
+    --color-success: #15803D;
+    --color-success-foreground: #FFFFFF;
+    --color-warning: #D97706;
+    --color-warning-foreground: #FFFFFF;
+    --color-info: #2563EB;
+    --color-info-foreground: #FFFFFF;
+    --color-critical: #DC2626;
+    --color-critical-foreground: #FFFFFF;
+    --color-emergency: #991B1B;
+    --color-emergency-foreground: #FFFFFF;
+    --color-stable: #15803D;
+    --color-observation: #D97706;
+    --color-completed: #15803D;
+    --color-waiting: #D97706;
+    --color-cancelled: #647067;
+    --color-treatment: #2563EB;
+
     --font-heading: var(--font-sans);
+    --font-sans: 'Inter', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -28,11 +46,13 @@
     --color-sidebar-primary: var(--sidebar-primary);
     --color-sidebar-foreground: var(--sidebar-foreground);
     --color-sidebar: var(--sidebar);
+
     --color-chart-5: var(--chart-5);
     --color-chart-4: var(--chart-4);
     --color-chart-3: var(--chart-3);
     --color-chart-2: var(--chart-2);
     --color-chart-1: var(--chart-1);
+
     --color-ring: var(--ring);
     --color-input: var(--input);
     --color-border: var(--border);
@@ -52,183 +72,293 @@
     --color-foreground: var(--foreground);
     --color-background: var(--background);
 
-    /* Type scale: 12, 13, 14, 24 with -0.15px tracking */
-    --text-2xs: 0.75rem; /* 12px */
-    --text-xs: 0.8125rem; /* 13px */
-    --text-sm: 0.875rem; /* 14px */
-    --text-display: 1.5rem; /* 24px */
-    --tracking-tight: -0.15px;
+    /* Clinical type scale */
+    --text-2xs: 0.75rem;
+    --text-xs: 0.8125rem;
+    --text-sm: 0.875rem;
+    --text-base: 0.9375rem;
+    --text-md: 1rem;
+    --text-lg: 1.0625rem;
+    --text-xl: 1.125rem;
+    --text-2xl: 1.25rem;
+    --text-3xl: 1.625rem;
+    --text-4xl: 1.875rem;
+    --text-display: 1.75rem;
+    --text-metric: 2.25rem;
+    --tracking-tight: -0.01em;
+    --tracking-tighter: -0.02em;
 
-    /* Radii: 8px nav, 16px cards, pill CTA */
-    --radius-sm: 0.5rem; /* 8px - nav */
-    --radius-md: 0.5rem; /* 8px - small elements */
-    --radius-lg: 1rem; /* 16px - cards */
-    --radius-xl: 1rem; /* 16px */
-    --radius-2xl: 9999px; /* pill - CTA */
-    --radius-3xl: 9999px; /* pill */
-    --radius-4xl: 9999px; /* pill */
+    /* Clinical radii: 6px, 8px, 10px */
+    --radius-sm: 0.375rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.625rem;
+    --radius-xl: 0.75rem;
+    --radius-2xl: 0.875rem;
+    --radius-3xl: 1rem;
+    --radius-4xl: 1.25rem;
 }
 
 :root {
-    --background: #ffffff;
-    --foreground: #292929; /* primary text */
-    --card: #ffffff;
-    --card-foreground: #292929;
-    --popover: #ffffff;
-    --popover-foreground: #292929;
-    --primary: #292929; /* dark, neutral CTA */
-    --primary-foreground: #ffffff;
-    --secondary: #f5f5f5;
-    --secondary-foreground: #292929;
-    --muted: #f5f5f5;
-    --muted-foreground: #5d5d5d; /* secondary text */
-    --accent: #f5f5f5;
-    --accent-foreground: #292929;
-    --destructive: #dc2626;
-    --border: #e5e5e5;
-    --input: #e5e5e5;
-    --ring: #9e9e9e;
-    --chart-1: #292929;
-    --chart-2: #5d5d5d;
-    --chart-3: #9e9e9e;
-    --chart-4: #bdbdbd;
-    --chart-5: #e5e5e5;
-    --radius: 1rem; /* 16px default for cards */
-    --sidebar: #ffffff;
-    --sidebar-foreground: #292929;
-    --sidebar-primary: #292929;
-    --sidebar-primary-foreground: #ffffff;
-    --sidebar-accent: #f5f5f5;
-    --sidebar-accent-foreground: #292929;
-    --sidebar-border: #e5e5e5;
-    --sidebar-ring: #9e9e9e;
+    --background: #F7F9F7;
+    --foreground: #17201A;
+    --card: #FFFFFF;
+    --card-foreground: #17201A;
+    --popover: #FFFFFF;
+    --popover-foreground: #17201A;
+
+    --primary: #15803D;
+    --primary-foreground: #FFFFFF;
+    --secondary: #F1F5F2;
+    --secondary-foreground: #166534;
+    --muted: #F1F4F1;
+    --muted-foreground: #647067;
+    --accent: #DCFCE7;
+    --accent-foreground: #166534;
+    --destructive: #DC2626;
+    --destructive-foreground: #FFFFFF;
+    --border: #E2E8E0;
+    --input: #E2E8E0;
+    --ring: #15803D;
+
+    --chart-1: #15803D;
+    --chart-2: #22C55E;
+    --chart-3: #166534;
+    --chart-4: #94A3B8;
+    --chart-5: #CBD5E1;
+
+    --radius: 0.625rem;
+
+    --sidebar: #FFFFFF;
+    --sidebar-foreground: #17201A;
+    --sidebar-primary: #15803D;
+    --sidebar-primary-foreground: #FFFFFF;
+    --sidebar-accent: #DCFCE7;
+    --sidebar-accent-foreground: #166534;
+    --sidebar-border: #E2E8E0;
+    --sidebar-ring: #15803D;
 }
 
 .dark {
-    --background: #0a0a0a;
-    --foreground: #f5f5f5;
-    --card: #141414;
-    --card-foreground: #f5f5f5;
-    --popover: #141414;
-    --popover-foreground: #f5f5f5;
-    --primary: #f5f5f5;
-    --primary-foreground: #0a0a0a;
-    --secondary: #1f1f1f;
-    --secondary-foreground: #f5f5f5;
-    --muted: #1f1f1f;
-    --muted-foreground: #9e9e9e;
-    --accent: #1f1f1f;
-    --accent-foreground: #f5f5f5;
-    --destructive: #ef4444;
-    --border: #2a2a2a;
-    --input: #2a2a2a;
-    --ring: #5d5d5d;
-    --sidebar: #0a0a0a;
-    --sidebar-foreground: #f5f5f5;
-    --sidebar-primary: #f5f5f5;
-    --sidebar-primary-foreground: #0a0a0a;
-    --sidebar-accent: #1f1f1f;
-    --sidebar-accent-foreground: #f5f5f5;
-    --sidebar-border: #2a2a2a;
-    --sidebar-ring: #5d5d5d;
+    --background: #0B1410;
+    --foreground: #F1F4F1;
+    --card: #121C16;
+    --card-foreground: #F1F4F1;
+    --popover: #121C16;
+    --popover-foreground: #F1F4F1;
+    --primary: #22C55E;
+    --primary-foreground: #052E16;
+    --secondary: #1A2A21;
+    --secondary-foreground: #DCFCE7;
+    --muted: #1A2A21;
+    --muted-foreground: #94A3B8;
+    --accent: #14532D;
+    --accent-foreground: #DCFCE7;
+    --destructive: #EF4444;
+    --destructive-foreground: #FFFFFF;
+    --border: #243029;
+    --input: #243029;
+    --ring: #22C55E;
+    --sidebar: #0F1813;
+    --sidebar-foreground: #F1F4F1;
+    --sidebar-primary: #22C55E;
+    --sidebar-primary-foreground: #052E16;
+    --sidebar-accent: #14532D;
+    --sidebar-accent-foreground: #DCFCE7;
+    --sidebar-border: #243029;
+    --sidebar-ring: #22C55E;
 }
 
 @layer base {
     * {
-        @apply border-border outline-ring/50;
+        @apply border-border outline-ring/40;
     }
     body {
         @apply bg-background text-foreground;
-        font-family:
-            'SF Pro Text',
-            'SF Pro Display',
-            -apple-system,
-            BlinkMacSystemFont,
-            system-ui,
-            sans-serif;
+        font-family: 'Inter', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
-        letter-spacing: -0.15px;
+        letter-spacing: -0.01em;
+        font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     }
     html {
         @apply font-sans;
-        font-family:
-            'SF Pro Text',
-            'SF Pro Display',
-            -apple-system,
-            BlinkMacSystemFont,
-            system-ui,
-            sans-serif;
+        font-family: 'Inter', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
     }
-    /* Type scale: 12, 13, 14, 24 with -0.15px tracking */
-    h1,
-    h2,
-    h3,
-    h4,
-    h5,
-    h6 {
-        font-family:
-            'SF Pro Display',
-            'SF Pro Text',
-            -apple-system,
-            BlinkMacSystemFont,
-            system-ui,
-            sans-serif;
-        letter-spacing: -0.15px;
-        color: #292929;
-    }
-    .text-display {
-        font-size: 24px;
-        line-height: 1.25;
-        letter-spacing: -0.15px;
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'Inter', 'Plus Jakarta Sans', system-ui, sans-serif;
+        letter-spacing: -0.02em;
+        color: #17201A;
         font-weight: 600;
     }
-    .text-meta {
-        font-size: 12px;
-        line-height: 1.4;
-        letter-spacing: -0.15px;
-        font-weight: 400;
-        color: #5d5d5d;
+    .text-page-title {
+        font-size: 1.625rem;
+        line-height: 1.2;
+        letter-spacing: -0.02em;
+        font-weight: 600;
+        color: #17201A;
     }
-    .text-eyebrow {
-        font-size: 13px;
+    .text-page-title-lg {
+        font-size: 1.875rem;
+        line-height: 1.2;
+        letter-spacing: -0.02em;
+        font-weight: 600;
+        color: #17201A;
+    }
+    .text-section-title {
+        font-size: 1.0625rem;
         line-height: 1.4;
-        letter-spacing: -0.15px;
-        font-weight: 400;
-        color: #5d5d5d;
+        letter-spacing: -0.01em;
+        font-weight: 600;
+        color: #17201A;
+    }
+    .text-section-title-lg {
+        font-size: 1.125rem;
+        line-height: 1.4;
+        letter-spacing: -0.01em;
+        font-weight: 600;
+        color: #17201A;
+    }
+    .text-metric-lg {
+        font-size: 2.25rem;
+        line-height: 1.1;
+        letter-spacing: -0.025em;
+        font-weight: 700;
+        color: #17201A;
+    }
+    .text-metric {
+        font-size: 1.75rem;
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+        font-weight: 700;
+        color: #17201A;
     }
     .text-body {
-        font-size: 14px;
-        line-height: 1.45;
-        letter-spacing: -0.15px;
-        font-weight: 400;
-        color: #292929;
+        font-size: 0.875rem;
+        line-height: 1.5;
+        letter-spacing: -0.005em;
+        color: #17201A;
     }
-    .text-faint {
-        color: #9e9e9e;
+    .text-body-secondary {
+        font-size: 0.875rem;
+        line-height: 1.5;
+        letter-spacing: -0.005em;
+        color: #647067;
     }
-    /* 14px icons in nav */
+    .text-meta {
+        font-size: 0.75rem;
+        line-height: 1.4;
+        letter-spacing: 0;
+        font-weight: 500;
+        color: #647067;
+    }
+    .text-eyebrow {
+        font-size: 0.6875rem;
+        line-height: 1.3;
+        letter-spacing: 0.06em;
+        font-weight: 600;
+        text-transform: uppercase;
+        color: #647067;
+    }
+    .text-label {
+        font-size: 0.8125rem;
+        line-height: 1.4;
+        letter-spacing: -0.005em;
+        font-weight: 500;
+        color: #17201A;
+    }
     .icon-nav {
-        width: 14px;
-        height: 14px;
+        width: 18px;
+        height: 18px;
         flex-shrink: 0;
+        stroke-width: 1.75;
     }
-    /* 20px icons in cards */
-    .icon-card {
+    .icon-sm {
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
+        stroke-width: 1.75;
+    }
+    .icon-md {
         width: 20px;
         height: 20px;
         flex-shrink: 0;
+        stroke-width: 1.75;
     }
-    /* Pill CTA radius */
-    .rounded-pill {
-        border-radius: 9999px;
+    .icon-lg {
+        width: 24px;
+        height: 24px;
+        flex-shrink: 0;
+        stroke-width: 1.75;
     }
-    /* Nav radius 8px */
-    .rounded-nav {
+    .surface-card {
+        background: #FFFFFF;
+        border: 1px solid #E2E8E0;
+        border-radius: 10px;
+        box-shadow: 0 1px 2px 0 rgba(15, 23, 23, 0.04);
+    }
+    .surface-card-hover {
+        transition: border-color 150ms ease, box-shadow 150ms ease;
+    }
+    .surface-card-hover:hover {
+        border-color: #C7D6CB;
+        box-shadow: 0 2px 4px 0 rgba(15, 23, 23, 0.06);
+    }
+    .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 9px 12px;
         border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        color: #17201A;
+        transition: background 120ms ease, color 120ms ease;
+        text-decoration: none;
     }
-    /* Card radius 16px */
-    .rounded-card {
-        border-radius: 16px;
+    .nav-link:hover {
+        background: #F1F4F1;
     }
+    .nav-link-active {
+        background: #DCFCE7;
+        color: #166534;
+    }
+    .nav-link-active:hover {
+        background: #DCFCE7;
+    }
+    .nav-section-label {
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #647067;
+        padding: 16px 12px 6px 12px;
+    }
+    ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: #C7D6CB;
+        border-radius: 5px;
+        border: 2px solid #F7F9F7;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: #94A3B8;
+    }
+}
+
+@keyframes slide-in-from-top-2 {
+    from { transform: translateY(-8px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+@keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+@keyframes pulse-subtle {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
 }

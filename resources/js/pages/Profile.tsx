@@ -1,13 +1,14 @@
-import AppLayout from '@/components/common/AppLayout';
 import { useForm } from '@inertiajs/react';
+import { usePage } from '@inertiajs/react';
+import { Loader2 } from 'lucide-react';
+import AppLayout from '@/components/common/AppLayout';
+import { PageHeader } from '@/components/common/PageHeader';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2 } from 'lucide-react';
-import { usePage } from '@inertiajs/react';
-import { User } from '@/types';
 import { update, password } from '@/routes/profile';
+import type { User } from '@/types';
 
 export default function Profile() {
     const { auth } = usePage<{ auth: { user: User } }>().props;
@@ -42,7 +43,7 @@ export default function Profile() {
 
     return (
         <AppLayout>
-            <h1 className="mb-6 text-2xl font-bold">Profil</h1>
+            <PageHeader title="Profil" />
             <div className="grid gap-6 lg:grid-cols-2">
                 <Card>
                     <CardHeader>

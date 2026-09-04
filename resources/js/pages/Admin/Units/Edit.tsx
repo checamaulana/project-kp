@@ -1,17 +1,26 @@
+import { useForm } from '@inertiajs/react';
+import { ArrowLeft, Loader2, Save } from 'lucide-react';
 import AppLayout from '@/components/common/AppLayout';
-import { Button, ButtonLink } from '@/components/ui/button';;
+import { PageHeader } from '@/components/common/PageHeader';
+import { Button, ButtonLink } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Link, useForm } from '@inertiajs/react';
-import { ArrowLeft, Loader2, Save } from 'lucide-react';
+import { update, index } from '@/routes/admin/units';
 
 interface Props {
-    unit: any;
+    unit: {
+        id: number;
+        kode: string;
+        nama: string;
+        keterangan: string | null;
+        is_active: boolean;
+    };
 }
 
 export default function AdminUnitsEdit({ unit }: Props) {
     const { data, setData, post, processing } = useForm({
+        _method: 'put' as const,
         kode: unit.kode,
         nama: unit.nama,
         keterangan: unit.keterangan ?? '',
@@ -20,17 +29,19 @@ export default function AdminUnitsEdit({ unit }: Props) {
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(`/admin/units/${unit.id}`, { _method: 'put' });
+        post(update({ unit: unit.id }).url);
     };
 
     return (
         <AppLayout>
-            <div className="mb-6 flex items-center gap-4">
-                <ButtonLink href="/admin/units" variant="ghost" size="icon" aria-label="Kembali">
-                    <ArrowLeft className="icon-nav" />
-                </ButtonLink>
-                <h1 className="text-2xl font-bold">Edit Unit</h1>
-            </div>
+            <PageHeader
+                title="Edit Unit"
+                actions={
+                    <ButtonLink href={index.url()} variant="ghost" size="icon" aria-label="Kembali">
+                        <ArrowLeft className="icon-nav" />
+                    </ButtonLink>
+                }
+            />
 
             <form onSubmit={submit} className="max-w-xl space-y-4 rounded-lg border bg-card p-6">
                 <div className="space-y-2">
@@ -50,7 +61,7 @@ export default function AdminUnitsEdit({ unit }: Props) {
                     Aktif
                 </label>
                 <div className="flex justify-end gap-2">
-                    <ButtonLink href="/admin/units" variant="outline">
+                    <ButtonLink href={index.url()} variant="outline">
                         Batal
                     </ButtonLink>
                     <Button type="submit" disabled={processing}>

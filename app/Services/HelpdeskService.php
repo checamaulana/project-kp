@@ -16,8 +16,11 @@ class HelpdeskService
     {
         return DB::transaction(function () use ($data, $files, $user) {
             $tahun = now()->year;
-            $lastNo = HelpdeskTicket::whereYear('created_at', $tahun)->lockForUpdate()->max('id') ?? 0;
-            $kodeTiket = str_pad((string) (($lastNo ?: 0) + 1), 4, '0', STR_PAD_LEFT);
+            $lastNo = HelpdeskTicket::whereYear('created_at', $tahun)
+                ->lockForUpdate()
+                ->selectRaw('MAX(CAST(SUBSTRING(kode_tiket, 2) AS UNSIGNED)) as max_no')
+                ->value('max_no') ?? 0;
+            $kodeTiket = str_pad((string) ($lastNo + 1), 4, '0', STR_PAD_LEFT);
 
             $lampiranPaths = [];
             if ($files) {
@@ -64,6 +67,10 @@ class HelpdeskService
 
     public function proses(HelpdeskTicket $ticket, User $handler, ?string $komentar = null): HelpdeskTicket
     {
+        if (! $ticket->isBaru()) {
+            throw new \RuntimeException('Hanya tiket berstatus baru yang bisa diproses.');
+        }
+
         return DB::transaction(function () use ($ticket, $handler, $komentar) {
             $sebelum = $ticket->status;
             $ticket->update([
@@ -91,6 +98,10 @@ class HelpdeskService
 
     public function selesaikan(HelpdeskTicket $ticket, User $handler, string $tindakLanjut): HelpdeskTicket
     {
+        if (! $ticket->isDiproses()) {
+            throw new \RuntimeException('Hanya tiket berstatus diproses yang bisa diselesaikan.');
+        }
+
         return DB::transaction(function () use ($ticket, $handler, $tindakLanjut) {
             $sebelum = $ticket->status;
             $ticket->update([
@@ -118,6 +129,10 @@ class HelpdeskService
 
     public function tutup(HelpdeskTicket $ticket, User $user, ?string $komentar = null): HelpdeskTicket
     {
+        if ($ticket->isSelesai() || $ticket->status === HelpdeskStatusEnum::DITUTUP) {
+            throw new \RuntimeException('Tiket yang sudah selesai/ditutup tidak bisa ditutup lagi.');
+        }
+
         return DB::transaction(function () use ($ticket, $user, $komentar) {
             $sebelum = $ticket->status;
             $ticket->update([

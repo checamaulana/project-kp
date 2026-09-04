@@ -31,7 +31,12 @@ class SuratKeluarController extends Controller
     {
         $user = $request->user();
         $activeYear = session('active_year', now()->year);
-        $perPage = $request->input('per_page', 25);
+
+        $request->validate([
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'status' => ['nullable', 'in:'.implode(',', array_column(StatusSuratKeluarEnum::cases(), 'value'))],
+        ]);
+        $perPage = (int) $request->input('per_page', 25);
 
         $query = SuratKeluar::query()
             ->with(['kodeSurat', 'indeks', 'unitPembuat', 'createdBy', 'approvedBy'])

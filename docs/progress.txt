@@ -104,3 +104,125 @@ Replaced all `route('xxx')` calls with Wayfinder imports from `@/routes`:
 - Login as `superadmin` / `password` redirects to `/dashboard`
 - Dashboard renders with sidebar containing: Dashboard, Surat Masuk, Surat Keluar, Disposisi, IT Helpdesk, Lapor Kendala, Notifikasi, Rekap, Admin
 - Header shows YearToggle, NotificationBell, user dropdown
+
+---
+
+## 2026-09-04 — Panduan Penggunaan Dibuat
+
+### ✅ DONE
+- [x] `docs/PANDUAN_PENGGUNA.md` — panduan untuk semua peran (staf, admin_tu, kepala_unit, superadmin)
+- [x] Isi: pengenalan + matriks role, akun demo, login/register/lupa password/logout
+- [x] Navigasi umum (sidebar, toggle tahun arsip, lonceng, profil)
+- [x] Surat masuk (CRUD, rincian, soft delete/restore), surat keluar (draft → approval Rektor → cetak PDF), disposisi (teruskan/arsipkan + cetak lembar)
+- [x] IT Helpdesk (form staf, dashboard IT, alur baru → diproses → selesai/ditutup)
+- [x] Admin (users/pending approval, units, audit logs), rekap + export Excel, notifikasi, cheat sheet per peran, troubleshooting
+
+---
+
+## 2026-09-04 — Konversi URL Hardcoded ke Wayfinder
+
+### ✅ DONE
+- [x] Semua URL string hardcoded di 18 file diganti Wayfinder type-safe imports; tidak ada `route('xxx')` global, tidak ada pola `<Button asChild>`
+- [x] Route berparameter pakai properti `.url` (contoh: `show({ helpdesk: id }).url`); `destroy` di-alias (`destroyUser`, `destroyUnit`)
+- [x] Export Excel pakai `${exportX.url()}?tahun=...` tanpa hardcode path
+- [x] Import tak terpakai (`Link`) dihapus; logika/UX tidak diubah; file lain tidak disentuh; tanpa build/test
+
+### Files
+- `Helpdesk/Index.tsx`, `Create.tsx`, `Show.tsx` — dari `@/routes/helpdesk`
+- `Rekap/Index.tsx`, `SuratMasuk.tsx`, `SuratKeluar.tsx` — dari `@/routes/rekap`, `@/routes/rekap/surat-masuk`, `@/routes/rekap/surat-keluar`
+- `Notifications/Index.tsx` — dari `@/routes/notifications`
+- `Admin/Users/Index.tsx`, `Create.tsx`, `Edit.tsx`, `Pending.tsx` — dari `@/routes/admin/users`
+- `Admin/Units/Index.tsx`, `Create.tsx`, `Edit.tsx` — dari `@/routes/admin/units`
+- `Admin/AuditLogs/Index.tsx` — dari `@/routes/admin/audit-logs`
+- `Dashboard.tsx` — dari `@/routes`, `@/routes/surat-masuk`, `@/routes/surat-keluar`, `@/routes/disposisi`, `@/routes/helpdesk`
+- `components/common/Sidebar.tsx`, `Header.tsx` — URL hardcoded diganti Wayfinder (yang sudah Wayfinder dibiarkan)
+- Tidak diubah: `Profile.tsx` (sudah Wayfinder), `AppLayout.tsx` (tidak ada URL)
+
+---
+
+## 2026-09-04 — Bugfix Sweep (semua temuan scan diperbaiki)
+
+### ✅ DONE — Backend kritis
+- [x] `SuratKeluar` model: `creator/approver` → `createdBy/approvedBy` + `isEditable()/isApprovable()` (index/show/rekap/approve/reject sebelumnya 500)
+- [x] `ProfileController`: tambah import `Password` (ganti password 500)
+- [x] `StatusUserEnum`: tambah `values()/options()` (update user admin 500)
+- [x] `SuratMasukController::restore`: authorize instance trashed (sebelumnya TypeError → 500)
+- [x] Fitur Lupa Password penuh: `PasswordResetLinkController`, `NewPasswordController`, routes, pages `ForgotPassword/ResetPassword`, link di Login, Wayfinder regenerate
+- [x] `DisposisiStoreRequest`: hapus rule `surat_masuk_id` wajib (form disposisi selalu 422)
+- [x] Ghost routes: helpdesk `except(edit,update,destroy)`, users/units `except(show)`; logout pindah ke grup auth
+- [x] Migrasi `2026_09_04_031042_fix_unique_and_foreign_keys`: unique `(tahun,unit,no_urut)`; FK unit/user → restrict; fix `down()` 153103 (dropForeign)
+- [x] Guards service: approve/reject hanya dari menunggu_acc (null-safe notify); transisi helpdesk (proses/selesaikan/tutup); kode tiket per-tahun dari MAX(kode) bukan MAX(id)
+- [x] Validasi: komentar proses/tutup (max 2000); per_page/tahun/status; throttle login per username+IP; CheckRole null-safe; EnsureUserActive 1x; unreadNotifications() query count
+- [x] `UserController`: approve/reject hanya pending; cegah demosi diri; cegah hapus superadmin terakhir
+- [x] `UnitController::destroy`: tolak jika unit masih dipakai
+- [x] `SuratMasukService`: enum status, Storage exists-check, purge chunk + mencakup SuratKeluar
+- [x] `DashboardController`: enum disposisi pending + stats helpdesk diproses/selesai real
+- [x] `SuratMasukUpdateRequest`/`SuratKeluarUpdateRequest`: tambah unit_*_id; service update strip field penomoran; fix typo `kode_turunan.in`; fix typo NomorSuratGenerator
+- [x] Factories baru: `KodeSuratFactory`, `IndeksFactory`
+
+### ✅ DONE — Frontend
+- [x] `YearToggle`: `router.post(url, {year})` (toggle tahun sebelumnya mati diam-diam)
+- [x] `SuratKeluar/Create`: preview nomor kirim header X-XSRF-TOKEN + cek r.ok
+- [x] `_method: 'put'` dipindah ke DATA form (4 Edit pages) — pola lama di options tidak terkirim → 405
+- [x] Filter tanggal SuratMasuk + filter AuditLogs (user_id/action/model_type) dikontrol state
+- [x] Rekap status label map; Pagination component baru dipakai Rekap x2 + Disposisi
+- [x] Pending: pilih role per-row + konfirmasi (tidak auto-approve)
+- [x] Notifications: JSON.parse aman + typed; Helpdesk/Show: state komentar terpisah; Disposisi/Show: fallback '-'; SuratKeluar/Edit: ST reaktif + typed props; Admin Edits: typed props
+- [x] `HelpdeskController::show` kirim `canProcess/canFinish/canClose` (tombol aksi IT sebelumnya tidak pernah muncul)
+- [x] Dashboard: counter diproses/selesai real + daftar tiket terbaru (sebelumnya 0 hardcoded & prop tak terpakai)
+- [x] Semua URL hardcoded → Wayfinder (~28 file); Error pages + Dashboard/Sidebar/Header ikut; import tak terpakai dibersihkan
+
+### ✅ VERIFIKASI
+- [x] `vendor/bin/pint --dirty` — pass
+- [x] `bun run lint` (eslint) — 0 error
+- [x] `bun run build` — success
+- [x] `php artisan test --compact` — 16/16 pass (6 auth + 10 BugfixRegressionTest baru)
+- [x] `php artisan migrate --force` — migrasi FK/unique teraplikasi di dev DB
+- [x] Catatan: noise typing `setData`/`ButtonLink href` (Inertia v2) masih ada di LSP tapi tidak merusak build; charts dashboard masih dummy (placeholder).
+
+---
+
+## 2026-09-04 — Fix Halaman Putih Setelah Simpan Surat Masuk
+
+### Root cause
+- [x] Laravel men-snake_case-kan key relasi di `toArray()` (`$snakeAttributes = true`), jadi Inertia menerima `unit_penerima`, `dari_user`, `kepada_user`, `kepada_unit`, `unit_pembuat`, `created_by`, `approved_by`, `surat_masuk`, `kode_surat`
+- [x] Frontend memakai camelCase (`surat.unitPenerima.nama` → `undefined.nama` → React crash → blank page). Terbukti via browser log + `SuratMasuk::find(4)->toArray()`
+
+### ✅ DONE
+- [x] `SuratMasuk/Show`: `unit_penerima`, `dari_user`, `kepada_user`, `kepada_unit` + guard `?.` / `?? '-'`
+- [x] `SuratKeluar/Show`: `unit_pembuat`, `created_by`, `approved_by` + guard (bug laten yang sama)
+- [x] `SuratKeluar/Index`: interface ke snake_case
+- [x] `Disposisi/Index` + `Disposisi/Show`: `surat_masuk`, `dari_user`, `kepada_user`, `kepada_unit` + guard
+- [x] Pelajaran dicatat di `docs/lessons.md`
+- [x] Verifikasi: build sukses, 16/16 test pass, Pint pass, ESLint bersih
+
+---
+
+## 2026-09-04 — Bersih-bersih Dashboard (hapus widget dummy)
+### ✅ DONE
+- [x] Hapus: ActivityChart (tren 6 bulan dummy), DonutChart + Distribusi per Unit (persen hardcoded), badge tren KPI palsu, kartu Status Sistem (selalu Online), kartu Target Kinerja (87/92/73% hardcoded)
+- [x] Disisakan yang datanya real: 4 KPI, Surat Masuk Terbaru, Tiket Helpdesk Aktif (counter + list tiket), Akses Cepat (full-width strip)
+- [x] Verifikasi: ESLint bersih, build sukses
+
+---
+
+## 2026-09-04 — Rapikan UI SuratMasuk/SuratKeluar/Disposisi (presentasi saja)
+
+### ✅ DONE
+- [x] Header manual → `PageHeader` (title/description/actions/breadcrumb) di 10 file; tombol Tambah/Buat/Cetak/Download masuk `actions`; tombol kembali ghost diganti breadcrumb (navigasi sama)
+- [x] Pagination manual → `Pagination` di `SuratMasuk/Index`, `SuratKeluar/Index` (`Disposisi/Index` sudah pakai)
+- [x] `<select>` mentah → base-ui `Select` di `SuratKeluar/Index` (filter status, `onValueChange={(v: string | null)}`, sentinel `semua` → `undefined`, request identik)
+- [x] Import mati dihapus: `ButtonLink`+`ArrowLeft` (SuratMasuk/Show, Disposisi/Show), `ArrowLeft` (Create/Edit x4, SuratKeluar/Show); `Button` tetap dipakai (Filter/Hapus/submit)
+- [x] Empty-state Disposisi/Index diberi ikon + teks gaya Dashboard; relasi tetap snake_case + guard; tanpa `route()` global, tanpa `asChild`
+- [x] Verifikasi: `npx eslint` 10 file — 0 error; tanpa build/test; file lain tidak disentuh
+
+---
+
+## 2026-09-04 — Polish UI Halaman Lain (Helpdesk, Rekap, Admin, Notifikasi, Profil)
+
+### ✅ DONE
+- [x] Semua header manual → `PageHeader` (+ breadcrumb, tombol di `actions`): Helpdesk (Index/Show/Create), Rekap (Index/Masuk/Keluar), Notifikasi, Admin Users/Units/AuditLogs, Profile
+- [x] Helpdesk/Index: 4 Card counter → `StatCard` (tanpa trend dummy); 2 `<select>` → base-ui Select; pagination manual → `<Pagination itemLabel="tiket">`
+- [x] `<button>` mentah → `<Button>` (AuditLogs filter); empty-state Units; guard `?.nama ?? '-'` tambahan
+- [x] Import tak terpakai dibersihkan; logika/URL/props/validasi tidak diubah
+- [x] Verifikasi: ESLint bersih, build sukses, 16/16 test pass

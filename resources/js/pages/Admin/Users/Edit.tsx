@@ -1,19 +1,30 @@
+import { useForm } from '@inertiajs/react';
+import { ArrowLeft, Loader2, Save } from 'lucide-react';
 import AppLayout from '@/components/common/AppLayout';
-import { Button, ButtonLink } from '@/components/ui/button';;
+import { PageHeader } from '@/components/common/PageHeader';
+import { Button, ButtonLink } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Link, useForm } from '@inertiajs/react';
-import { ArrowLeft, Loader2, Save } from 'lucide-react';
+import { update, index } from '@/routes/admin/users';
 
 interface Props {
-    user: any;
+    user: {
+        id: number;
+        name: string;
+        username: string;
+        email: string;
+        unit_id: number;
+        role: string;
+        status: string;
+    };
     units: Array<{ id: number; nama: string; kode: string }>;
     roles: Record<string, string>;
 }
 
 export default function AdminUsersEdit({ user, units, roles }: Props) {
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing } = useForm({
+        _method: 'put' as const,
         name: user.name,
         username: user.username,
         email: user.email,
@@ -24,17 +35,19 @@ export default function AdminUsersEdit({ user, units, roles }: Props) {
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(`/admin/users/${user.id}`, { _method: 'put' });
+        post(update({ user: user.id }).url);
     };
 
     return (
         <AppLayout>
-            <div className="mb-6 flex items-center gap-4">
-                <ButtonLink href="/admin/users" variant="ghost" size="icon" aria-label="Kembali">
-                    <ArrowLeft className="icon-nav" />
-                </ButtonLink>
-                <h1 className="text-2xl font-bold">Edit User</h1>
-            </div>
+            <PageHeader
+                title="Edit User"
+                actions={
+                    <ButtonLink href={index.url()} variant="ghost" size="icon" aria-label="Kembali">
+                        <ArrowLeft className="icon-nav" />
+                    </ButtonLink>
+                }
+            />
 
             <form onSubmit={submit} className="max-w-2xl space-y-4 rounded-lg border bg-card p-6">
                 <div className="space-y-2">
@@ -93,7 +106,7 @@ export default function AdminUsersEdit({ user, units, roles }: Props) {
                     </Select>
                 </div>
                 <div className="flex justify-end gap-2">
-                    <ButtonLink href="/admin/users" variant="outline">
+                    <ButtonLink href={index.url()} variant="outline">
                         Batal
                     </ButtonLink>
                     <Button type="submit" disabled={processing}>

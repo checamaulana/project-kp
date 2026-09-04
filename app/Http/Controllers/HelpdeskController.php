@@ -22,7 +22,13 @@ class HelpdeskController extends Controller
     public function index(Request $request): Response
     {
         $user = $request->user();
-        $perPage = $request->input('per_page', 25);
+
+        $request->validate([
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'status' => ['nullable', 'in:'.implode(',', array_column(\App\Enums\HelpdeskStatusEnum::cases(), 'value'))],
+            'kategori' => ['nullable', 'in:'.implode(',', array_column(\App\Enums\HelpdeskKategoriEnum::cases(), 'value'))],
+        ]);
+        $perPage = (int) $request->input('per_page', 25);
 
         $query = HelpdeskTicket::with(['unit', 'pelapor', 'handler'])
             ->latest();
@@ -88,14 +94,19 @@ class HelpdeskController extends Controller
             ->with('success', 'Laporan berhasil dikirim. Kode tiket: '.$ticket->kode_tiket);
     }
 
-    public function show(HelpdeskTicket $helpdesk): Response
+    public function show(Request $request, HelpdeskTicket $helpdesk): Response
     {
         $this->authorize('view', $helpdesk);
 
         $helpdesk->load(['unit', 'pelapor', 'handler', 'progress.user']);
 
+        $user = $request->user();
+
         return Inertia::render('Helpdesk/Show', [
             'ticket' => $helpdesk,
+            'canProcess' => $user->can('proses', $helpdesk),
+            'canFinish' => $user->can('selesaikan', $helpdesk),
+            'canClose' => $user->can('tutup', $helpdesk),
         ]);
     }
 
@@ -103,7 +114,11 @@ class HelpdeskController extends Controller
     {
         $this->authorize('proses', $helpdesk);
 
-        $this->service->proses($helpdesk, $request->user(), $request->input('komentar'));
+        $data = $request->validate([
+            'komentar' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $this->service->proses($helpdesk, $request->user(), $data['komentar'] ?? null);
 
         return back()->with('success', 'Tiket mulai diproses.');
     }
@@ -121,7 +136,11 @@ class HelpdeskController extends Controller
     {
         $this->authorize('tutup', $helpdesk);
 
-        $this->service->tutup($helpdesk, $request->user(), $request->input('komentar'));
+        $data = $request->validate([
+            'komentar' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $this->service->tutup($helpdesk, $request->user(), $data['komentar'] ?? null);
 
         return back()->with('success', 'Tiket ditutup.');
     }

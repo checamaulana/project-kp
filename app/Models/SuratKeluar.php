@@ -63,14 +63,24 @@ class SuratKeluar extends Model
         return $this->belongsTo(Unit::class, 'unit_pembuat_id');
     }
 
-    public function creator(): BelongsTo
+    public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function approver(): BelongsTo
+    public function approvedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function isEditable(): bool
+    {
+        return in_array($this->status, [StatusSuratKeluarEnum::DRAFT, StatusSuratKeluarEnum::DITOLAK], true);
+    }
+
+    public function isApprovable(): bool
+    {
+        return $this->status === StatusSuratKeluarEnum::MENUNGGU_ACC;
     }
 
     public function isSuratTugas(): bool

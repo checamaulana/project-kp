@@ -1,23 +1,41 @@
+import { useForm } from '@inertiajs/react';
+import { Loader2, Save } from 'lucide-react';
+import { useEffect } from 'react';
 import AppLayout from '@/components/common/AppLayout';
-import { Button, ButtonLink } from '@/components/ui/button';;
+import { PageHeader } from '@/components/common/PageHeader';
+import { Button, ButtonLink } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Link, useForm } from '@inertiajs/react';
-import { ArrowLeft, Loader2, Save } from 'lucide-react';
-import { useState } from 'react';
+import { show, update } from '@/routes/surat-keluar';
+
+interface SuratKeluar {
+    id: number;
+    kode_surat_id: number;
+    unit_pembuat_id: number;
+    indeks_id: number;
+    kode_turunan: string | null;
+    tanggal_surat: string;
+    kepada: string;
+    perihal: string;
+    penanda_tangan: string;
+    tembusan: string | null;
+    keterangan: string | null;
+    tanggal_mulai_penugasan: string | null;
+    tanggal_selesai_penugasan: string | null;
+}
 
 interface Props {
-    surat: any;
+    surat: SuratKeluar;
     kodeSuratOptions: Array<{ id: number; kode: string; keterangan: string | null }>;
     indeksOptions: Array<{ id: number; kode: string; nama: string; kode_turunan: string[] | null }>;
     units: Array<{ id: number; nama: string; kode: string }>;
 }
 
 export default function SuratKeluarEdit({ surat, kodeSuratOptions, indeksOptions, units }: Props) {
-    const [showSTFields] = useState(surat.kode_turunan !== null);
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing } = useForm({
+        _method: 'put' as const,
         kode_surat_id: String(surat.kode_surat_id),
         unit_pembuat_id: String(surat.unit_pembuat_id),
         indeks_id: String(surat.indeks_id),
@@ -36,19 +54,24 @@ export default function SuratKeluarEdit({ surat, kodeSuratOptions, indeksOptions
     const selectedIndeks = indeksOptions.find((i) => String(i.id) === data.indeks_id);
     const isST = selectedIndeks?.kode === 'ST';
 
+    useEffect(() => {
+        if (!isST && data.kode_turunan) {
+            setData('kode_turunan', '');
+        }
+    }, [data.indeks_id, data.kode_turunan, isST, setData]);
+
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(`/surat-keluar/${surat.id}`, { forceFormData: true, _method: 'put' });
+        post(update({ surat_keluar: surat.id }).url, { forceFormData: true });
     };
 
     return (
         <AppLayout>
-            <div className="mb-6 flex items-center gap-4">
-                <ButtonLink href={`/surat-keluar/${surat.id}`} variant="ghost" size="icon" aria-label="Kembali">
-                    <ArrowLeft className="icon-nav" />
-                </ButtonLink>
-                <h1 className="text-2xl font-bold">Edit Surat Keluar</h1>
-            </div>
+            <PageHeader
+                title="Edit Surat Keluar"
+                description={`Revisi draf surat kepada ${surat.kepada}`}
+                breadcrumb={[{ label: 'Surat Keluar', href: show({ surat_keluar: surat.id }).url }, { label: 'Edit' }]}
+            />
 
             <form onSubmit={submit} className="max-w-3xl space-y-4 rounded-lg border bg-card p-6">
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -99,7 +122,7 @@ export default function SuratKeluarEdit({ surat, kodeSuratOptions, indeksOptions
                     </div>
                 </div>
 
-                {(isST || showSTFields) && selectedIndeks?.kode_turunan && (
+                {isST && selectedIndeks?.kode_turunan && (
                     <div className="grid grid-cols-1 gap-4 rounded-md border bg-muted/30 p-4 md:grid-cols-3">
                         <div className="space-y-2">
                             <Label>Kode Turunan (ST)</Label>
@@ -167,7 +190,7 @@ export default function SuratKeluarEdit({ surat, kodeSuratOptions, indeksOptions
                 </div>
 
                 <div className="flex justify-end gap-2">
-                    <ButtonLink href={`/surat-keluar/${surat.id}`} variant="outline">
+                    <ButtonLink href={show({ surat_keluar: surat.id }).url} variant="outline">
                         Batal
                     </ButtonLink>
                     <Button type="submit" disabled={processing}>

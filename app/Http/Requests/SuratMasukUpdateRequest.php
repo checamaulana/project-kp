@@ -21,6 +21,7 @@ class SuratMasukUpdateRequest extends FormRequest
             'perihal' => ['required', 'string', 'max:255'],
             'keterangan' => ['nullable', 'string', 'max:1000'],
             'indeks_id' => ['nullable', 'exists:indeks,id'],
+            'unit_penerima_id' => ['required', 'exists:units,id'],
             'file' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:10240'],
         ];
     }

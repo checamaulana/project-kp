@@ -1,13 +1,22 @@
+import { router } from '@inertiajs/react';
+import { Bell, CheckCheck, Check } from 'lucide-react';
 import AppLayout from '@/components/common/AppLayout';
+import { PageHeader } from '@/components/common/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Link, router } from '@inertiajs/react';
-import { Bell, CheckCheck, Check } from 'lucide-react';
+import { read, readAll } from '@/routes/notifications';
+
+interface NotifData {
+    perihal?: string;
+    kode_tiket?: string;
+    isi?: string;
+    komentar?: string;
+}
 
 interface Notif {
     id: string;
     type: string;
-    data: any;
+    data: NotifData | string | null;
     read_at: string | null;
     created_at: string;
 }
@@ -34,16 +43,16 @@ const typeLabel: Record<string, string> = {
 export default function NotificationsIndex({ notifications }: Props) {
     return (
         <AppLayout>
-            <div className="mb-6 flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold">Notifikasi</h1>
-                    <p className="text-sm text-muted-foreground">Total: {notifications.total}</p>
-                </div>
-                <Button variant="outline" onClick={() => router.post('/notifications/read-all')}>
-                    <CheckCheck className="icon-nav" />
-                    Tandai Semua Dibaca
-                </Button>
-            </div>
+            <PageHeader
+                title="Notifikasi"
+                description={`Total: ${notifications.total}`}
+                actions={
+                    <Button variant="outline" onClick={() => router.post(readAll.url())}>
+                        <CheckCheck className="icon-nav" />
+                        Tandai Semua Dibaca
+                    </Button>
+                }
+            />
 
             {notifications.data.length === 0 ? (
                 <Card>
@@ -55,7 +64,16 @@ export default function NotificationsIndex({ notifications }: Props) {
             ) : (
                 <div className="space-y-2">
                     {notifications.data.map((n) => {
-                        const data = typeof n.data === 'string' ? JSON.parse(n.data) : n.data;
+                        let data: NotifData = {};
+                        if (typeof n.data === 'string') {
+                            try {
+                                data = JSON.parse(n.data) as NotifData;
+                            } catch {
+                                data = {};
+                            }
+                        } else if (n.data) {
+                            data = n.data;
+                        }
                         const isRead = n.read_at !== null;
                         return (
                             <Card key={n.id} className={isRead ? 'opacity-60' : 'border-primary'}>
@@ -72,7 +90,7 @@ export default function NotificationsIndex({ notifications }: Props) {
                                         <p className="mt-1 text-xs text-muted-foreground">{new Date(n.created_at).toLocaleString('id-ID')}</p>
                                     </div>
                                     {!isRead && (
-                                        <Button size="sm" variant="ghost" onClick={() => router.post(`/notifications/${n.id}/read`)}>
+                                        <Button size="sm" variant="ghost" onClick={() => router.post(read({ id: n.id }).url)}>
                                             <Check className="h-4 w-4" />
                                         </Button>
                                     )}

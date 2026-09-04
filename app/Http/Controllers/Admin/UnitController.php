@@ -60,6 +60,10 @@ class UnitController extends Controller
 
     public function destroy(Unit $unit): RedirectResponse
     {
+        if ($unit->users()->exists() || $unit->suratMasuk()->exists() || $unit->suratKeluar()->exists() || $unit->helpdeskTickets()->exists()) {
+            return back()->with('error', 'Unit tidak bisa dihapus karena masih dipakai user/surat/tiket.');
+        }
+
         $unit->delete();
 
         return back()->with('success', 'Unit dihapus.');

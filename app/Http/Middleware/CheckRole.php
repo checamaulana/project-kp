@@ -12,7 +12,7 @@ class CheckRole
     {
         $user = $request->user();
 
-        if (! $user || ! in_array($user->role->value, $roles, true)) {
+        if (! $user || ! $user->role || ! in_array($user->role->value, $roles, true)) {
             abort(403, 'Anda tidak memiliki akses ke halaman ini.');
         }
 

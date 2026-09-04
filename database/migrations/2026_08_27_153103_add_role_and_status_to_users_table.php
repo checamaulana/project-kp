@@ -21,6 +21,7 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             $table->dropSoftDeletes();
+            $table->dropForeign(['unit_id']);
             $table->dropColumn(['username', 'unit_id', 'role', 'status']);
         });
     }
