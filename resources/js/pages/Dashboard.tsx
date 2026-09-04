@@ -57,28 +57,28 @@ export default function Dashboard({ stats, recentSuratMasuk, recentHelpdesk, act
                     label="Surat Masuk"
                     value={stats.surat_masuk}
                     icon={<FileInput className="icon-md" />}
-                    accent="green"
+                    accent="neutral"
                     sublabel="Total tahun aktif"
                 />
                 <StatCard
                     label="Surat Keluar"
                     value={stats.surat_keluar}
                     icon={<FileOutput className="icon-md" />}
-                    accent="blue"
+                    accent="neutral"
                     sublabel="Total tahun aktif"
                 />
                 <StatCard
                     label="Disposisi Tertunda"
                     value={stats.disposisi_pending}
                     icon={<Inbox className="icon-md" />}
-                    accent="amber"
+                    accent="neutral"
                     sublabel="Belum ditindaklanjuti"
                 />
                 <StatCard
                     label="Tiket IT Baru"
                     value={stats.helpdesk_baru}
                     icon={<Wrench className="icon-md" />}
-                    accent="red"
+                    accent="neutral"
                     sublabel="Memerlukan perhatian"
                 />
             </div>
@@ -109,7 +109,7 @@ export default function Dashboard({ stats, recentSuratMasuk, recentHelpdesk, act
                             <ul className="divide-y divide-[#E2E8E0]">
                                 {recentSuratMasuk.slice(0, 5).map((s) => (
                                     <li key={s.id} className="flex items-start gap-3 px-6 py-3 hover:bg-muted/50">
-                                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-[#DCFCE7] text-[#166534]">
+                                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
                                             <FileInput className="icon-sm" />
                                         </div>
                                         <div className="min-w-0 flex-1">
@@ -135,20 +135,18 @@ export default function Dashboard({ stats, recentSuratMasuk, recentHelpdesk, act
                     <CardContent>
                         <div className="space-y-3">
                             {[
-                                { label: 'Baru', value: stats.helpdesk_baru, color: 'text-[#DC2626]', bgSoft: 'bg-[#FEE2E2]', icon: AlertCircle },
-                                { label: 'Diproses', value: stats.helpdesk_diproses, color: 'text-[#D97706]', bgSoft: 'bg-[#FEF3C7]', icon: Clock },
+                                { label: 'Baru', value: stats.helpdesk_baru, icon: AlertCircle },
+                                { label: 'Diproses', value: stats.helpdesk_diproses, icon: Clock },
                                 {
                                     label: 'Selesai',
                                     value: stats.helpdesk_selesai,
-                                    color: 'text-[#15803D]',
-                                    bgSoft: 'bg-[#DCFCE7]',
                                     icon: CheckCircle2,
                                 },
                             ].map((s) => {
                                 const Icon = s.icon;
                                 return (
                                     <div key={s.label} className="flex items-center gap-3 rounded-lg border border-border p-3">
-                                        <div className={cn('flex h-9 w-9 items-center justify-center rounded-md', s.bgSoft, s.color)}>
+                                        <div className="flex h-9 w-9 items-center justify-center rounded-md bg-muted text-muted-foreground">
                                             <Icon className="icon-sm" />
                                         </div>
                                         <div className="flex-1">
@@ -199,9 +197,9 @@ export default function Dashboard({ stats, recentSuratMasuk, recentHelpdesk, act
                             <a
                                 key={q.label}
                                 href={q.href}
-                                className="group flex items-center gap-3 rounded-md border border-border p-3 transition-colors hover:border-primary/30 hover:bg-[#DCFCE7]/50"
+                                className="group flex items-center gap-3 rounded-md border border-border p-3 transition-colors hover:bg-muted"
                             >
-                                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-[#DCFCE7] text-[#166534] transition-colors group-hover:bg-[#BBF7D0]">
+                                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-muted text-muted-foreground">
                                     <Icon className="icon-sm" />
                                 </div>
                                 <span className="text-xs font-medium text-foreground">{q.label}</span>

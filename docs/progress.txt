@@ -226,3 +226,17 @@ Replaced all `route('xxx')` calls with Wayfinder imports from `@/routes`:
 - [x] `<button>` mentah → `<Button>` (AuditLogs filter); empty-state Units; guard `?.nama ?? '-'` tambahan
 - [x] Import tak terpakai dibersihkan; logika/URL/props/validasi tidak diubah
 - [x] Verifikasi: ESLint bersih, build sukses, 16/16 test pass
+
+---
+
+## 2026-09-04 — Revert Revamp UI (kembali ke UI sebelumnya)
+
+### Alasan
+- User tidak suka sidebar hitam; minta kembalikan semua ke UI sebelumnya.
+
+### ✅ DONE
+- [x] Revert via `git checkout`: Sidebar (terang kembali), Auth x4, Dashboard, DashboardController, app.css, PageHeader, StatCard, Helpdesk x3, Rekap x3, Notifikasi, Admin/Users/Index, SuratMasuk x4, SuratKeluar/Index
+- [x] Hapus file baru revamp: `AuthLayout.tsx`, `TrendChart.tsx`
+- [x] `app.blade.php` tetap dipertahankan (file sempat hilang) dengan font asli instrument-sans
+- [x] Perbaikan bug TETAP dipertahankan: format tanggal (`formatTanggal` di 7 file — sudah ter-commit), snake_case relasi, semua bugfix backend, migrasi infra
+- [x] Verifikasi: build sukses, 16/16 test pass

@@ -1,7 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
-import { LayoutDashboard, FileInput, FileOutput, Inbox, Wrench, HelpCircle, Bell, BarChart3, Settings, LogOut } from 'lucide-react';
+import { LayoutDashboard, FileInput, FileOutput, Inbox, Wrench, HelpCircle, Bell, BarChart3, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { dashboard, logout } from '@/routes';
+import { dashboard } from '@/routes';
 import { index as adminUsersIndex } from '@/routes/admin/users';
 import { index as disposisiIndex } from '@/routes/disposisi';
 import { index as helpdeskIndex, create as helpdeskCreate } from '@/routes/helpdesk';
@@ -69,31 +69,10 @@ export function Sidebar({ currentPath }: SidebarProps) {
         return path === href || path.startsWith(href + '/');
     };
 
-    const initials = user.name
-        .split(' ')
-        .map((p) => p[0])
-        .slice(0, 2)
-        .join('')
-        .toUpperCase();
-
     return (
         <aside className="flex h-screen w-64 shrink-0 flex-col border-r border-[#E2E8E0] bg-white">
             {/* Hospital Logo */}
             <div className="flex items-center gap-3 border-b border-[#E2E8E0] px-5 py-4">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-white">
-                    <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                    >
-                        <path d="M12 5v14M5 12h14" />
-                    </svg>
-                </div>
                 <div className="min-w-0 flex-1">
                     <div className="truncate text-sm font-semibold text-[#17201A]">RSGM Unimus</div>
                     <div className="truncate text-xs text-muted-foreground">Sistem Manajemen Surat</div>
@@ -124,28 +103,6 @@ export function Sidebar({ currentPath }: SidebarProps) {
                     );
                 })}
             </nav>
-
-            {/* User profile at bottom */}
-            <div className="border-t border-[#E2E8E0] p-3">
-                <div className="flex items-center gap-3 rounded-lg p-2 hover:bg-muted">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
-                        {initials}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                        <div className="truncate text-sm font-medium text-[#17201A]">{user.name}</div>
-                        <div className="truncate text-xs text-muted-foreground capitalize">{user.role.replace('_', ' ')}</div>
-                    </div>
-                    <Link
-                        href={logout.url()}
-                        method="post"
-                        as="button"
-                        className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-background hover:text-foreground"
-                        title="Keluar"
-                    >
-                        <LogOut className="icon-sm" />
-                    </Link>
-                </div>
-            </div>
         </aside>
     );
 }

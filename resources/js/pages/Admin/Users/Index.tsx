@@ -27,6 +27,12 @@ const statusColor: Record<string, string> = {
     rejected: 'bg-red-100 text-red-800',
 };
 
+const statusLabel: Record<string, string> = {
+    pending: 'Pending',
+    active: 'Active',
+    rejected: 'Rejected',
+};
+
 const roleLabel: Record<string, string> = {
     superadmin: 'Superadmin',
     admin_tu: 'Admin TU',
@@ -92,7 +98,9 @@ export default function AdminUsersIndex({ users, pendingCount }: Props) {
                                         <td className="p-3 text-xs">{u.unit?.nama ?? '-'}</td>
                                         <td className="p-3 text-xs">{roleLabel[u.role]}</td>
                                         <td className="p-3">
-                                            <span className={`rounded px-2 py-1 text-xs font-medium ${statusColor[u.status]}`}>{u.status}</span>
+                                            <span className={`rounded px-2 py-1 text-xs font-medium ${statusColor[u.status]}`}>
+                                                {statusLabel[u.status] ?? u.status}
+                                            </span>
                                         </td>
                                         <td className="p-3">
                                             <div className="flex gap-1">

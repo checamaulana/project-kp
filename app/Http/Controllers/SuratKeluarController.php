@@ -35,6 +35,8 @@ class SuratKeluarController extends Controller
         $request->validate([
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
             'status' => ['nullable', 'in:'.implode(',', array_column(StatusSuratKeluarEnum::cases(), 'value'))],
+            'tanggal_mulai' => ['nullable', 'date'],
+            'tanggal_selesai' => ['nullable', 'date'],
         ]);
         $perPage = (int) $request->input('per_page', 25);
 
@@ -51,6 +53,13 @@ class SuratKeluarController extends Controller
             $query->where('status', $status);
         }
 
+        if ($tglMulai = $request->input('tanggal_mulai')) {
+            $query->whereDate('tanggal_surat', '>=', $tglMulai);
+        }
+        if ($tglSelesai = $request->input('tanggal_selesai')) {
+            $query->whereDate('tanggal_surat', '<=', $tglSelesai);
+        }
+
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('nomor_surat', 'like', "%{$search}%")
@@ -65,7 +74,7 @@ class SuratKeluarController extends Controller
 
         return Inertia::render('SuratKeluar/Index', [
             'suratKeluars' => $suratKeluars,
-            'filters' => $request->only(['search', 'status', 'per_page']),
+            'filters' => $request->only(['search', 'status', 'tanggal_mulai', 'tanggal_selesai', 'per_page']),
             'pendingCount' => $pendingCount,
             'activeYear' => $activeYear,
         ]);

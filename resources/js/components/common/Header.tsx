@@ -1,7 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import { Calendar, ChevronDown, User as UserIcon, LogOut, Settings } from 'lucide-react';
 import { NotificationBell } from '@/components/common/NotificationBell';
-import { YearToggle } from '@/components/common/YearToggle';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -26,19 +25,13 @@ export function Header({ title, breadcrumb }: HeaderProps) {
     const { auth, unread_notifications_count } = usePage<{ auth: { user: User }; unread_notifications_count: number }>().props;
     const user = auth.user;
 
-    const initials = user.name
-        .split(' ')
-        .map((p) => p[0])
-        .slice(0, 2)
-        .join('')
-        .toUpperCase();
-
-    const today = new Date().toLocaleDateString('id-ID', {
+    const now = new Date();
+    const today = `${now.toLocaleDateString('id-ID', {
         weekday: 'long',
         day: 'numeric',
         month: 'long',
         year: 'numeric',
-    });
+    })} • ${now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }).replace('.', ':')}`;
 
     return (
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b border-[#E2E8E0] bg-white px-6">
@@ -66,11 +59,6 @@ export function Header({ title, breadcrumb }: HeaderProps) {
                 </div>
             </div>
 
-            {/* Center: archive year */}
-            <div className="max-w-[140px] flex-1 sm:max-w-[180px]">
-                <YearToggle />
-            </div>
-
             {/* Right: actions */}
             <div className="flex items-center gap-2">
                 {/* Date */}
@@ -90,8 +78,8 @@ export function Header({ title, breadcrumb }: HeaderProps) {
                             'data-[popup-open]:bg-muted',
                         )}
                     >
-                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded bg-primary/10 text-xs font-semibold text-primary">
-                            {initials}
+                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded bg-primary/10 text-primary">
+                            <UserIcon className="icon-sm" />
                         </div>
                         <div className="hidden text-left md:block">
                             <div className="text-xs leading-tight font-semibold text-foreground">{user.name}</div>

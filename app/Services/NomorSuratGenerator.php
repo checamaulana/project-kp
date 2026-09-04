@@ -25,7 +25,7 @@ class NomorSuratGenerator
             $tahun = Carbon::now()->year;
             $bulanRomawi = $this->toRoman(Carbon::now()->month);
 
-            $lastNo = SuratKeluar::where('tahun', $tahun)
+            $lastNo = SuratKeluar::withTrashed()->where('tahun', $tahun)
                 ->where('unit_pembuat_id', $unitId)
                 ->lockForUpdate()
                 ->max('no_urut');
@@ -52,7 +52,7 @@ class NomorSuratGenerator
         }
 
         $kodeIndeks = $indeks->kode.($kodeTurunan ? '.'.$kodeTurunan : '');
-        $lastNo = SuratKeluar::where('tahun', $tahun)
+        $lastNo = SuratKeluar::withTrashed()->where('tahun', $tahun)
             ->where('unit_pembuat_id', $unitId)
             ->max('no_urut');
         $noUrut = str_pad((string) (($lastNo ?? 0) + 1), 3, '0', STR_PAD_LEFT);

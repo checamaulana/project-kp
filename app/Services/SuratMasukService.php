@@ -16,7 +16,7 @@ class SuratMasukService
         return DB::transaction(function () use ($data, $file, $userId) {
             $tahun = now()->year;
 
-            $lastNo = SuratMasuk::where('tahun', $tahun)->lockForUpdate()->max('no_urut');
+            $lastNo = SuratMasuk::withTrashed()->where('tahun', $tahun)->lockForUpdate()->max('no_urut');
             $noUrut = ($lastNo ?? 0) + 1;
 
             $fileName = $file->getClientOriginalName();

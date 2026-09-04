@@ -34,7 +34,7 @@ interface Props {
         per_page: number;
         links: Array<{ url: string | null; label: string; active: boolean }>;
     };
-    filters: { search?: string; status?: string; per_page?: number };
+    filters: { search?: string; status?: string; tanggal_mulai?: string; tanggal_selesai?: string; per_page?: number };
     pendingCount: number;
     activeYear: number;
 }
@@ -48,17 +48,23 @@ const statusBadge: Record<string, { label: string; color: string }> = {
 
 export default function SuratKeluarIndex({ suratKeluars, filters, pendingCount, activeYear }: Props) {
     const [search, setSearch] = useState(filters.search ?? '');
+    const [tanggalMulai, setTanggalMulai] = useState(filters.tanggal_mulai ?? '');
+    const [tanggalSelesai, setTanggalSelesai] = useState(filters.tanggal_selesai ?? '');
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
-        router.get(index.url(), { ...filters, search }, { preserveState: true });
+        router.get(
+            index.url(),
+            { ...filters, search, tanggal_mulai: tanggalMulai || undefined, tanggal_selesai: tanggalSelesai || undefined },
+            { preserveState: true },
+        );
     };
 
     return (
         <AppLayout>
             <PageHeader
                 title="Surat Keluar"
-                description={`Tahun aktif: ${activeYear} • ${pendingCount} menunggu ACC Rektor`}
+                description={`Tahun aktif: ${activeYear} • ${pendingCount} menunggu ACC`}
                 breadcrumb={[{ label: 'Beranda', href: dashboard.url() }, { label: 'Surat Keluar' }]}
                 actions={
                     <ButtonLink href={create.url()}>
@@ -93,6 +99,8 @@ export default function SuratKeluarIndex({ suratKeluars, filters, pendingCount, 
                         <SelectItem value="ditolak">Ditolak</SelectItem>
                     </SelectContent>
                 </Select>
+                <Input type="date" value={tanggalMulai} onChange={(e) => setTanggalMulai(e.target.value)} className="max-w-[180px]" />
+                <Input type="date" value={tanggalSelesai} onChange={(e) => setTanggalSelesai(e.target.value)} className="max-w-[180px]" />
                 <Button type="submit" variant="secondary">
                     Filter
                 </Button>
