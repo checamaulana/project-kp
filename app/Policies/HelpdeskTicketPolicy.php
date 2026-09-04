@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Enums\HelpdeskStatusEnum;
 use App\Models\HelpdeskTicket;
 use App\Models\User;
 
@@ -28,16 +29,16 @@ class HelpdeskTicketPolicy
 
     public function proses(User $user, HelpdeskTicket $ticket): bool
     {
-        return $user->canHandleHelpdesk() && $ticket->status->value === 'baru';
+        return $user->canHandleHelpdesk() && $ticket->status === HelpdeskStatusEnum::BARU;
     }
 
     public function selesaikan(User $user, HelpdeskTicket $ticket): bool
     {
-        return $user->canHandleHelpdesk() && $ticket->status->value === 'diproses';
+        return $user->canHandleHelpdesk() && $ticket->status === HelpdeskStatusEnum::DIPROSES;
     }
 
     public function tutup(User $user, HelpdeskTicket $ticket): bool
     {
-        return $user->canHandleHelpdesk() && in_array($ticket->status->value, ['baru', 'diproses']);
+        return $user->canHandleHelpdesk() && in_array($ticket->status, [HelpdeskStatusEnum::BARU, HelpdeskStatusEnum::DIPROSES], true);
     }
 }

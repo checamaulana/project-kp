@@ -29,9 +29,45 @@
 ### Things That Could Be Improved
 
 1. **Email notifications**: Currently only `database` channel, not `mail`. Add SMTP config for production.
-2. **Tighter typing**: Pages with pagination use `any` for `links` array.
-3. **Tests coverage**: Only auth tests exist. Helpdesk, Surat tests would be valuable.
+2. **Tipe `any`**: Sebagian sudah diperbaiki (Rekap, Disposisi/Show, Admin Edits, SuratKeluar/Edit). Sisa `any` di beberapa file + noise typing `setData`/`ButtonLink href` dari @inertiajs/react v2 (tidak merusak `vite build`, hanya `tsc --noEmit`).
+3. **Tests coverage**: Auth + 10 regression tests (BugfixRegressionTest). Helpdesk/Surat flow E2E via browser belum ada.
 4. **File upload validation**: Could add virus scanning, image dimension checks.
+5. **Dashboard charts**: ActivityChart/DonutChart/tren KPI/target masih data dummy hardcoded — perlu endpoint analitik bila ingin real.
+
+### ⚠️ CORRECTED 2026-09-04: `_method` Harus di DATA, Bukan di Options
+
+Koreksi atas pitfall lama ("For PUT/PATCH with file, use `post(url, { _method: 'put', forceFormData: true })`"): argumen kedua `post()` pada `useForm` adalah **visit options**, BUKAN data — sehingga `_method` di options **tidak pernah terkirim** ke server dan submit Edit selalu 405. Pola yang benar:
+
+```tsx
+// ❌ WRONG — _method hilang, server terima POST polos → 405
+post(`/surat-masuk/${id}`, { forceFormData: true, _method: 'put' });
+
+// ✅ CORRECT — _method ikut di body FormData → Laravel spoof jadi PUT
+const { post } = useForm({ _method: 'put' as const /* ...fields */ });
+post(update({ surat_masuk: id }).url, { forceFormData: true });
+```
+
+Aturan yang sama berlaku untuk `YearToggle`: `post(url, { year })` pada `useForm` tidak mengirim data — gunakan `router.post(url, { year })`.
+
+### Bugfix Sweep 2026-09-04 (ringkas, detail di progress.txt)
+
+- `SuratKeluar`: relasi diganti `creator/approver` → `createdBy/approvedBy` + tambah `isEditable()/isApprovable()` (sebelumnya index/show/approve/reject 500).
+- `ProfileController`: tambah `use Password;` (ganti password 500).
+- `StatusUserEnum`: tambah `values()/options()` (update user admin 500).
+- Fitur Lupa Password diimplementasi penuh (controller + route + halaman + link login) — sebelumnya route mati.
+- `DisposisiStoreRequest`: hapus rule `surat_masuk_id` wajib (form selalu 422).
+- `SuratMasukController::restore`: authorize pakai instance trashed, bukan class-string.
+- Migrasi `fix_unique_and_foreign_keys`: unique surat keluar jadi per (tahun, unit, no_urut); FK unit/user destruktif jadi `restrict`.
+- Guards: approve/reject hanya dari `menunggu_acc`; transisi helpdesk tervalidasi; approve/reject user hanya saat pending; proteksi hapus unit terpakai & superadmin terakhir & demosi diri.
+- Frontend: YearToggle, preview nomor CSRF, filter tanggal/audit, status rekap, Pending approve+konfirmasi, pagination Rekap/Disposisi, JSON.parse aman, state komentar terpisah, fallback '-', ST section reaktif, semua URL hardcoded → Wayfinder, `canProcess/canFinish/canClose` dikirim ke Helpdesk/Show, counter dashboard real.
+
+### ⚠️ CRITICAL 2026-09-04: Relasi Eloquent Terserialisasi snake_case (halaman putih)
+
+**Gejala:** Setelah simpan surat masuk → redirect ke rincian → halaman putih total. Log browser: `TypeError: Cannot read properties of undefined (reading 'nama') at SuratMasukShow`.
+
+**Root cause:** Laravel men-snake_case-kan key relasi di `toArray()` (`HasAttributes::$snakeAttributes = true`, lihat `relationsToArray()`). Jadi Inertia menerima `unit_penerima`, `dari_user`, `kepada_user`, `kepada_unit`, `unit_pembuat`, `created_by`, `approved_by`, `surat_masuk`, `kode_surat` — BUKAN camelCase. Hampir semua halaman Show/Index memakai `surat.unitPenerima.nama`, `d.dariUser.name`, `surat.createdBy.name`, dll → `undefined.nama` → React crash → blank page. Halaman yang kebetulan pakai snake_case (Index, Rekap) lolos.
+
+**Aturan:** Di semua file `resources/js/pages/**`, akses relasi model HARUS snake_case + guard optional chaining (`surat.unit_penerima?.nama ?? '-'`). Satu-satunya pengecualian: relasi satu kata (`creator`, `indeks`, `unit`, `pelapor`, `handler`). Jangan percaya interface TS lokal — verifikasi key aktual via `Model::toArray()` di tinker.
 
 ### ⚠️ CRITICAL: No Global `route()` Helper
 
@@ -71,6 +107,7 @@ Files that need Wayfinder imports when adding new routes:
 ## 2026-08-28 — `Button asChild` Causes Base UI Error #31 (Blank Page)
 
 ### Bug
+
 The "Super Admin" user dropdown in the header caused the page to **turn blank** when clicked. Browser console showed:
 
 ```
@@ -79,13 +116,14 @@ MenuGroupContext is missing. Menu group parts must be used within <Menu.Group> o
 ```
 
 ### Root Cause
+
 The project uses `@base-ui/react` (NOT Radix UI). The base-ui `Button` primitive does **not** support the Radix-style `asChild` prop. The code was using:
 
 ```tsx
 <DropdownMenuTrigger asChild>
-  <Button variant="ghost" className="gap-2">
-    <Avatar />
-  </Button>
+    <Button variant="ghost" className="gap-2">
+        <Avatar />
+    </Button>
 </DropdownMenuTrigger>
 ```
 
@@ -94,19 +132,22 @@ This rendered invalid HTML: `<button><button>...</button></button>` (nested butt
 The same pattern (`<Button asChild><Link>...</Link></Button>`) was used in 19+ files across the codebase, producing nested `<button><a>...</a></button>` HTML that broke the link click and made the link unclickable.
 
 ### Fix
+
 1. Removed all `<Button asChild>` patterns from the codebase
 2. Created dedicated `ButtonLink` and `ButtonAnchor` components that render proper `<a>` elements (via Inertia `Link` for SPA navigation, plain `<a>` for downloads/external links)
 3. Updated `Header.tsx` to use the base-ui pattern: pass `className` directly to `DropdownMenuTrigger` (which renders its own button) and use the `render` prop for `DropdownMenuItem` to swap the underlying element
 4. Wrapped the `DropdownMenuLabel` in `DropdownMenuGroup` to satisfy base-ui's `MenuGroupContext` requirement
 
 ### Components
+
 [`resources/js/components/ui/button.tsx`](resources/js/components/ui/button.tsx) exports three button primitives:
 
 - `Button` — plain `<button>` (no asChild)
 - `ButtonLink` — Inertia `<Link>` styled as button (renders as `<a>` for SPA navigation)
-- `ButtonAnchor` — plain `<a>` styled as button (for downloads, target="_blank", external links)
+- `ButtonAnchor` — plain `<a>` styled as button (for downloads, target="\_blank", external links)
 
 ### Usage
+
 ```tsx
 // ❌ WRONG — broken, link inside button
 <Button asChild>
@@ -133,6 +174,7 @@ The same pattern (`<Button asChild><Link>...</Link></Button>`) was used in 19+ f
 ```
 
 ### Why base-ui Differs from Radix
+
 - Radix uses `asChild` to merge the consumer's element with the trigger's behavior
 - base-ui uses `render={<CustomElement />}` for the same purpose
 - For base-ui `Menu.Trigger`, the trigger itself is always a `<button>` — pass `className` to style it directly, do NOT nest another button inside

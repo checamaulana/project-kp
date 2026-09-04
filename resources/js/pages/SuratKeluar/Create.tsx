@@ -1,12 +1,14 @@
+import { useForm } from '@inertiajs/react';
+import { Loader2, Save, Sparkles } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import AppLayout from '@/components/common/AppLayout';
-import { Button, ButtonLink } from '@/components/ui/button';;
+import { PageHeader } from '@/components/common/PageHeader';
+import { Button, ButtonLink } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Link, router, useForm } from '@inertiajs/react';
-import { ArrowLeft, Loader2, Save, Sparkles } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { index, previewNomor, store } from '@/routes/surat-keluar';
 
 interface IndeksOption {
     id: number;
@@ -23,7 +25,7 @@ interface Props {
 }
 
 export default function SuratKeluarCreate({ kodeSuratOptions, indeksOptions, units, userUnitId }: Props) {
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing } = useForm({
         kode_surat_id: kodeSuratOptions[0] ? String(kodeSuratOptions[0].id) : '',
         unit_pembuat_id: String(userUnitId),
         indeks_id: '',
@@ -48,7 +50,7 @@ export default function SuratKeluarCreate({ kodeSuratOptions, indeksOptions, uni
         if (selected?.kode !== 'ST') {
             setData('kode_turunan', '');
         }
-    }, [data.indeks_id]);
+    }, [data.indeks_id, indeksOptions, setData]);
 
     useEffect(() => {
         if (data.kode_surat_id && data.unit_pembuat_id && data.indeks_id) {
@@ -57,9 +59,23 @@ export default function SuratKeluarCreate({ kodeSuratOptions, indeksOptions, uni
             fd.append('unit_pembuat_id', data.unit_pembuat_id);
             fd.append('indeks_id', data.indeks_id);
             if (data.kode_turunan) fd.append('kode_turunan', data.kode_turunan);
-            fetch('/surat-keluar/preview-nomor', { method: 'POST', body: fd, headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-                .then((r) => r.json())
-                .then((d) => setNomorPreview(d.nomor_surat))
+            const xsrfToken = document.cookie
+                .split('; ')
+                .find((row) => row.startsWith('XSRF-TOKEN='))
+                ?.split('=')[1];
+            fetch(previewNomor.url(), {
+                method: 'POST',
+                body: fd,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    ...(xsrfToken ? { 'X-XSRF-TOKEN': decodeURIComponent(xsrfToken) } : {}),
+                },
+            })
+                .then((r) => {
+                    if (!r.ok) throw new Error('preview gagal');
+                    return r.json();
+                })
+                .then((d) => setNomorPreview(d.nomor_surat ?? ''))
                 .catch(() => setNomorPreview(''));
         } else {
             setNomorPreview('');
@@ -68,19 +84,18 @@ export default function SuratKeluarCreate({ kodeSuratOptions, indeksOptions, uni
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        post('/surat-keluar', { forceFormData: true });
+        post(store.url(), { forceFormData: true });
     };
 
     const selectedIndeks = indeksOptions.find((i) => String(i.id) === data.indeks_id);
 
     return (
         <AppLayout>
-            <div className="mb-6 flex items-center gap-4">
-                <ButtonLink href="/surat-keluar" variant="ghost" size="icon" aria-label="Kembali">
-                    <ArrowLeft className="icon-nav" />
-                </ButtonLink>
-                <h1 className="text-2xl font-bold">Buat Surat Keluar</h1>
-            </div>
+            <PageHeader
+                title="Buat Surat Keluar"
+                description="Susun draf surat keluar — nomor resmi terbit saat pengajuan"
+                breadcrumb={[{ label: 'Surat Keluar', href: index.url() }, { label: 'Buat' }]}
+            />
 
             <form onSubmit={submit} className="max-w-3xl space-y-4 rounded-lg border bg-card p-6">
                 {nomorPreview && (
@@ -213,7 +228,7 @@ export default function SuratKeluarCreate({ kodeSuratOptions, indeksOptions, uni
                 </div>
 
                 <div className="flex justify-end gap-2">
-                    <ButtonLink href="/surat-keluar" variant="outline">
+                    <ButtonLink href={index.url()} variant="outline">
                         Batal
                     </ButtonLink>
                     <Button type="submit" disabled={processing}>

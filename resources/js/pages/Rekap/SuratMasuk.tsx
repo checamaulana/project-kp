@@ -1,17 +1,32 @@
+import { router } from '@inertiajs/react';
+import { FileSpreadsheet } from 'lucide-react';
 import AppLayout from '@/components/common/AppLayout';
+import { PageHeader } from '@/components/common/PageHeader';
+import { Pagination, type PaginationLink } from '@/components/common/Pagination';
 import { Button, ButtonAnchor } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Link, router } from '@inertiajs/react';
-import { Download, FileSpreadsheet } from 'lucide-react';
+import { formatTanggal } from '@/lib/format';
+import { suratMasuk } from '@/routes/rekap';
+import { exportMethod as exportSuratMasuk } from '@/routes/rekap/surat-masuk';
+
+interface SuratMasukRow {
+    id: number;
+    no_urut: number;
+    tanggal_terima: string;
+    pengirim: string;
+    nomor_surat: string;
+    perihal: string;
+    unit_penerima: { nama: string } | null;
+}
 
 interface Props {
     data: {
-        data: any[];
+        data: SuratMasukRow[];
         current_page: number;
         last_page: number;
         total: number;
         per_page: number;
-        links: Array<{ url: string | null; label: string; active: boolean }>;
+        links: PaginationLink[];
     };
     filters: { tahun?: number; per_page?: number };
 }
@@ -21,7 +36,7 @@ export default function RekapSuratMasuk({ data, filters }: Props) {
         e.preventDefault();
         const fd = new FormData(e.target as HTMLFormElement);
         router.get(
-            '/rekap/surat-masuk',
+            suratMasuk.url(),
             {
                 tahun: fd.get('tahun'),
                 per_page: filters.per_page,
@@ -32,16 +47,16 @@ export default function RekapSuratMasuk({ data, filters }: Props) {
 
     return (
         <AppLayout>
-            <div className="mb-6 flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold">Rekap Surat Masuk</h1>
-                    <p className="text-sm text-muted-foreground">Total: {data.total} surat</p>
-                </div>
-                <ButtonAnchor href={`/rekap/surat-masuk/export?tahun=${filters.tahun ?? ''}`}>
-                    <FileSpreadsheet className="icon-nav" />
-                    Export Excel
-                </ButtonAnchor>
-            </div>
+            <PageHeader
+                title="Rekap Surat Masuk"
+                description={`Total: ${data.total} surat`}
+                actions={
+                    <ButtonAnchor href={`${exportSuratMasuk.url()}?tahun=${filters.tahun ?? ''}`}>
+                        <FileSpreadsheet className="icon-nav" />
+                        Export Excel
+                    </ButtonAnchor>
+                }
+            />
 
             <form onSubmit={handleFilter} className="mb-4 flex gap-2">
                 <Input type="number" name="tahun" placeholder="Tahun" defaultValue={filters.tahun} className="max-w-[150px]" />
@@ -74,11 +89,11 @@ export default function RekapSuratMasuk({ data, filters }: Props) {
                                 data.data.map((s) => (
                                     <tr key={s.id} className="border-t">
                                         <td className="p-3">{s.no_urut}</td>
-                                        <td className="p-3">{s.tanggal_terima}</td>
+                                        <td className="p-3">{formatTanggal(s.tanggal_terima)}</td>
                                         <td className="p-3 font-medium">{s.pengirim}</td>
                                         <td className="p-3">{s.nomor_surat}</td>
                                         <td className="p-3">{s.perihal}</td>
-                                        <td className="p-3 text-xs">{s.unit_penerima?.nama}</td>
+                                        <td className="p-3 text-xs">{s.unit_penerima?.nama ?? '-'}</td>
                                     </tr>
                                 ))
                             )}
@@ -86,6 +101,8 @@ export default function RekapSuratMasuk({ data, filters }: Props) {
                     </table>
                 </div>
             </div>
+
+            <Pagination links={data.links} total={data.total} itemLabel="surat" />
         </AppLayout>
     );
 }

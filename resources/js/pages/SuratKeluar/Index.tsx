@@ -1,9 +1,15 @@
-import AppLayout from '@/components/common/AppLayout';
-import { Button, ButtonLink, ButtonAnchor } from '@/components/ui/button';;
-import { Input } from '@/components/ui/input';
-import { Link, router } from '@inertiajs/react';
-import { Plus, Edit, Eye, Printer, Send, Check, X, Clock } from 'lucide-react';
+import { router } from '@inertiajs/react';
+import { Plus, Eye, Printer } from 'lucide-react';
 import { useState } from 'react';
+import AppLayout from '@/components/common/AppLayout';
+import { PageHeader } from '@/components/common/PageHeader';
+import { Pagination } from '@/components/common/Pagination';
+import { Button, ButtonLink, ButtonAnchor } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { formatTanggal } from '@/lib/format';
+import { dashboard } from '@/routes';
+import { cetak, create, index, show } from '@/routes/surat-keluar';
 
 interface SuratKeluarItem {
     id: number;
@@ -13,10 +19,10 @@ interface SuratKeluarItem {
     kepada: string;
     perihal: string;
     status: 'draft' | 'menunggu_acc' | 'disetujui' | 'ditolak';
-    kodeSurat: { kode: string } | null;
+    kode_surat: { kode: string } | null;
     indeks: { kode: string; nama: string } | null;
-    unitPembuat: { nama: string };
-    createdBy: { name: string };
+    unit_pembuat: { nama: string } | null;
+    created_by: { name: string } | null;
 }
 
 interface Props {
@@ -28,7 +34,7 @@ interface Props {
         per_page: number;
         links: Array<{ url: string | null; label: string; active: boolean }>;
     };
-    filters: { search?: string; status?: string; per_page?: number };
+    filters: { search?: string; status?: string; tanggal_mulai?: string; tanggal_selesai?: string; per_page?: number };
     pendingCount: number;
     activeYear: number;
 }
@@ -42,26 +48,31 @@ const statusBadge: Record<string, { label: string; color: string }> = {
 
 export default function SuratKeluarIndex({ suratKeluars, filters, pendingCount, activeYear }: Props) {
     const [search, setSearch] = useState(filters.search ?? '');
+    const [tanggalMulai, setTanggalMulai] = useState(filters.tanggal_mulai ?? '');
+    const [tanggalSelesai, setTanggalSelesai] = useState(filters.tanggal_selesai ?? '');
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
-        router.get('/surat-keluar', { ...filters, search }, { preserveState: true });
+        router.get(
+            index.url(),
+            { ...filters, search, tanggal_mulai: tanggalMulai || undefined, tanggal_selesai: tanggalSelesai || undefined },
+            { preserveState: true },
+        );
     };
 
     return (
         <AppLayout>
-            <div className="mb-6 flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold">Surat Keluar</h1>
-                    <p className="text-sm text-muted-foreground">
-                        Tahun aktif: {activeYear} • {pendingCount} menunggu ACC Rektor
-                    </p>
-                </div>
-                <ButtonLink href="/surat-keluar/create">
-                    <Plus className="icon-nav" />
-                    Buat Surat
-                </ButtonLink>
-            </div>
+            <PageHeader
+                title="Surat Keluar"
+                description={`Tahun aktif: ${activeYear} • ${pendingCount} menunggu ACC`}
+                breadcrumb={[{ label: 'Beranda', href: dashboard.url() }, { label: 'Surat Keluar' }]}
+                actions={
+                    <ButtonLink href={create.url()}>
+                        <Plus className="icon-nav" />
+                        Buat Surat
+                    </ButtonLink>
+                }
+            />
 
             <form onSubmit={handleSearch} className="mb-4 flex flex-wrap gap-2">
                 <Input
@@ -71,17 +82,25 @@ export default function SuratKeluarIndex({ suratKeluars, filters, pendingCount, 
                     onChange={(e) => setSearch(e.target.value)}
                     className="max-w-sm"
                 />
-                <select
-                    value={filters.status ?? ''}
-                    onChange={(e) => router.get('/surat-keluar', { ...filters, status: e.target.value || undefined })}
-                    className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+                <Select
+                    value={filters.status ?? 'semua'}
+                    onValueChange={(v: string | null) =>
+                        router.get(index.url(), { ...filters, status: v === 'semua' ? undefined : (v ?? undefined) })
+                    }
                 >
-                    <option value="">Semua Status</option>
-                    <option value="draft">Draft</option>
-                    <option value="menunggu_acc">Menunggu ACC</option>
-                    <option value="disetujui">Disetujui</option>
-                    <option value="ditolak">Ditolak</option>
-                </select>
+                    <SelectTrigger className="w-[160px]">
+                        <SelectValue placeholder="Semua Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="semua">Semua Status</SelectItem>
+                        <SelectItem value="draft">Draft</SelectItem>
+                        <SelectItem value="menunggu_acc">Menunggu ACC</SelectItem>
+                        <SelectItem value="disetujui">Disetujui</SelectItem>
+                        <SelectItem value="ditolak">Ditolak</SelectItem>
+                    </SelectContent>
+                </Select>
+                <Input type="date" value={tanggalMulai} onChange={(e) => setTanggalMulai(e.target.value)} className="max-w-[180px]" />
+                <Input type="date" value={tanggalSelesai} onChange={(e) => setTanggalSelesai(e.target.value)} className="max-w-[180px]" />
                 <Button type="submit" variant="secondary">
                     Filter
                 </Button>
@@ -114,7 +133,7 @@ export default function SuratKeluarIndex({ suratKeluars, filters, pendingCount, 
                                     return (
                                         <tr key={s.id} className="border-t">
                                             <td className="p-3">{s.no_urut}</td>
-                                            <td className="p-3">{s.tanggal_surat}</td>
+                                            <td className="p-3">{formatTanggal(s.tanggal_surat)}</td>
                                             <td className="p-3 font-mono text-xs">{s.nomor_surat}</td>
                                             <td className="p-3">{s.kepada}</td>
                                             <td className="p-3">{s.perihal}</td>
@@ -123,11 +142,17 @@ export default function SuratKeluarIndex({ suratKeluars, filters, pendingCount, 
                                             </td>
                                             <td className="p-3">
                                                 <div className="flex gap-1">
-                                                    <ButtonLink href={`/surat-keluar/${s.id}`} size="icon" variant="ghost" title="Lihat">
+                                                    <ButtonLink href={show({ surat_keluar: s.id }).url} size="icon" variant="ghost" title="Lihat">
                                                         <Eye className="icon-nav" />
                                                     </ButtonLink>
                                                     {s.status === 'disetujui' && (
-                                                        <ButtonAnchor href={`/surat-keluar/${s.id}/cetak`} size="icon" variant="ghost" title="Cetak PDF" target="_blank">
+                                                        <ButtonAnchor
+                                                            href={cetak({ suratKeluar: s.id }).url}
+                                                            size="icon"
+                                                            variant="ghost"
+                                                            title="Cetak PDF"
+                                                            target="_blank"
+                                                        >
                                                             <Printer className="icon-nav" />
                                                         </ButtonAnchor>
                                                     )}
@@ -142,24 +167,7 @@ export default function SuratKeluarIndex({ suratKeluars, filters, pendingCount, 
                 </div>
             </div>
 
-            {suratKeluars.last_page > 1 && (
-                <div className="mt-4 flex items-center justify-between">
-                    <p className="text-sm text-muted-foreground">Total: {suratKeluars.total} surat</p>
-                    <div className="flex gap-1">
-                        {suratKeluars.links.map((link, i) =>
-                            link.url ? (
-                                <ButtonLink key={i} href={link.url} size="sm" variant={link.active ? 'default' : 'outline'}>
-                                    <span dangerouslySetInnerHTML={{ __html: link.label }} />
-                                </ButtonLink>
-                            ) : (
-                                <Button key={i} size="sm" variant={link.active ? 'default' : 'outline'} disabled>
-                                    <span dangerouslySetInnerHTML={{ __html: link.label }} />
-                                </Button>
-                            )
-                        )}
-                    </div>
-                </div>
-            )}
+            <Pagination links={suratKeluars.links} total={suratKeluars.total} itemLabel="surat" />
         </AppLayout>
     );
 }

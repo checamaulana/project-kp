@@ -1,29 +1,37 @@
 import AppLayout from '@/components/common/AppLayout';
+import { PageHeader } from '@/components/common/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Link } from '@inertiajs/react';
-import { ArrowLeft } from 'lucide-react';
-import { Button, ButtonLink } from '@/components/ui/button';;
+import { index } from '@/routes/disposisi';
+
+interface DisposisiDetail {
+    id: number;
+    isi: string;
+    aksi: 'di_disposisi' | 'di_arsipkan';
+    status: 'pending' | 'selesai';
+    dari_user: { name: string } | null;
+    kepada_user: { name: string } | null;
+    kepada_unit: { nama: string } | null;
+}
 
 interface Props {
-    disposisi: any;
+    disposisi: DisposisiDetail;
 }
 
 export default function DisposisiShow({ disposisi }: Props) {
     return (
         <AppLayout>
-            <div className="mb-6 flex items-center gap-4">
-                <ButtonLink href="/disposisi" variant="ghost" size="icon" aria-label="Kembali">
-                    <ArrowLeft className="icon-nav" />
-                </ButtonLink>
-                <h1 className="text-2xl font-bold">Rincian Disposisi</h1>
-            </div>
+            <PageHeader
+                title="Rincian Disposisi"
+                description={`Dari ${disposisi.dari_user?.name ?? '-'} • Status ${disposisi.status}`}
+                breadcrumb={[{ label: 'Disposisi', href: index.url() }, { label: 'Rincian' }]}
+            />
             <Card>
                 <CardHeader>
                     <CardTitle>Disposisi</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p>Dari: {disposisi.dariUser?.name}</p>
-                    <p>Kepada: {disposisi.kepadaUser?.name ?? disposisi.kepadaUnit?.nama}</p>
+                    <p>Dari: {disposisi.dari_user?.name ?? '-'}</p>
+                    <p>Kepada: {disposisi.kepada_user?.name ?? disposisi.kepada_unit?.nama ?? '-'}</p>
                     <p>Status: {disposisi.status}</p>
                     <p>Aksi: {disposisi.aksi}</p>
                     <p className="mt-3">{disposisi.isi}</p>

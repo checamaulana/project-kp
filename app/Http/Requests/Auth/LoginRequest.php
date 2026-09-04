@@ -4,6 +4,8 @@ namespace App\Http\Requests\Auth;
 
 use App\Enums\StatusUserEnum;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 
@@ -36,7 +38,7 @@ class LoginRequest extends FormRequest
 
         $user = \App\Models\User::where('username', $this->input('username'))->first();
 
-        if (! $user || ! \Hash::check($this->input('password'), $user->password)) {
+        if (! $user || ! Hash::check($this->input('password'), $user->password)) {
             RateLimiter::hit($this->throttleKey());
             throw ValidationException::withMessages([
                 'username' => 'Username atau password salah.',
@@ -49,7 +51,7 @@ class LoginRequest extends FormRequest
             ]);
         }
 
-        \Auth::login($user, $this->boolean('remember'));
+        Auth::login($user, $this->boolean('remember'));
         RateLimiter::clear($this->throttleKey());
     }
 
@@ -66,6 +68,6 @@ class LoginRequest extends FormRequest
 
     public function throttleKey(): string
     {
-        return 'login:'.($this->ip() ?? 'unknown');
+        return 'login:'.strtolower((string) $this->input('username')).'|'.($this->ip() ?? 'unknown');
     }
 }

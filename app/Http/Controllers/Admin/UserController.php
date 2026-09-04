@@ -90,6 +90,10 @@ class UserController extends Controller
             'status' => ['required', 'in:'.implode(',', StatusUserEnum::values())],
         ]);
 
+        if ($user->id === auth()->id() && ($data['role'] !== RoleEnum::SUPERADMIN->value || $data['status'] !== StatusUserEnum::ACTIVE->value)) {
+            return back()->with('error', 'Tidak bisa menurunkan role atau menonaktifkan akun sendiri.');
+        }
+
         $user->update($data);
 
         return back()->with('success', 'User diperbarui.');
@@ -99,6 +103,9 @@ class UserController extends Controller
     {
         if ($user->id === auth()->id()) {
             return back()->with('error', 'Tidak bisa menghapus akun sendiri.');
+        }
+        if ($user->role === RoleEnum::SUPERADMIN && User::where('role', RoleEnum::SUPERADMIN)->count() <= 1) {
+            return back()->with('error', 'Tidak bisa menghapus superadmin terakhir.');
         }
         $user->delete();
 
@@ -119,6 +126,10 @@ class UserController extends Controller
 
     public function approve(Request $request, User $user): RedirectResponse
     {
+        if (! $user->isPending()) {
+            return back()->with('error', 'Hanya user berstatus menunggu yang bisa disetujui.');
+        }
+
         $request->validate([
             'role' => ['required', 'in:'.implode(',', RoleEnum::values())],
         ]);
@@ -133,6 +144,10 @@ class UserController extends Controller
 
     public function reject(User $user): RedirectResponse
     {
+        if (! $user->isPending()) {
+            return back()->with('error', 'Hanya user berstatus menunggu yang bisa ditolak.');
+        }
+
         $user->update(['status' => StatusUserEnum::REJECTED]);
 
         return back()->with('success', 'User ditolak.');

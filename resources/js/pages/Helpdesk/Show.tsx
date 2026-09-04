@@ -1,11 +1,12 @@
-import AppLayout from '@/components/common/AppLayout';
-import { Button, ButtonLink } from '@/components/ui/button';;
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
-import { Link, router, useForm } from '@inertiajs/react';
+import { router, useForm } from '@inertiajs/react';
 import { ArrowLeft, Play, CheckCircle, X, Paperclip, User, Calendar, Tag, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
+import AppLayout from '@/components/common/AppLayout';
+import { PageHeader } from '@/components/common/PageHeader';
+import { Button, ButtonLink } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
+import { index, lampiran, proses, selesaikan, tutup } from '@/routes/helpdesk';
 
 interface Progress {
     id: number;
@@ -49,30 +50,29 @@ const statusColor: Record<string, string> = {
 
 export default function HelpdeskShow({ ticket, canProcess, canFinish, canClose }: Props) {
     const [showSelesaikan, setShowSelesaikan] = useState(false);
-    const [showTutup, setShowTutup] = useState(false);
-    const [komentar, setKomentar] = useState('');
+    const [komentarProses, setKomentarProses] = useState('');
+    const [komentarTutup, setKomentarTutup] = useState('');
 
     const { data, setData, post, processing } = useForm({
-        komentar: '',
         tindak_lanjut: '',
     });
 
     return (
         <AppLayout>
-            <div className="mb-6 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <ButtonLink href="/helpdesk" variant="ghost" size="icon" aria-label="Kembali">
-                        <ArrowLeft className="icon-nav" />
-                    </ButtonLink>
-                    <div>
-                        <h1 className="text-2xl font-bold">{ticket.kode_tiket}</h1>
-                        <p className="text-sm text-muted-foreground">
-                            Dilaporkan oleh {ticket.nama_pelapor} • {new Date(ticket.created_at).toLocaleString('id-ID')}
-                        </p>
-                    </div>
-                </div>
-                <span className={`rounded-full px-3 py-1 text-xs font-medium ${statusColor[ticket.status]}`}>{ticket.status.toUpperCase()}</span>
-            </div>
+            <PageHeader
+                title={ticket.kode_tiket}
+                description={`Dilaporkan oleh ${ticket.nama_pelapor} • ${new Date(ticket.created_at).toLocaleString('id-ID')}`}
+                actions={
+                    <>
+                        <ButtonLink href={index.url()} variant="ghost" size="icon" aria-label="Kembali">
+                            <ArrowLeft className="icon-nav" />
+                        </ButtonLink>
+                        <span className={`rounded-full px-3 py-1 text-xs font-medium ${statusColor[ticket.status]}`}>
+                            {ticket.status.toUpperCase()}
+                        </span>
+                    </>
+                }
+            />
 
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
                 <div className="space-y-4 lg:col-span-2">
@@ -88,7 +88,7 @@ export default function HelpdeskShow({ ticket, canProcess, canFinish, canClose }
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <Tag className="h-4 w-4 text-muted-foreground" />
-                                    <span>{ticket.unit.nama}</span>
+                                    <span>{ticket.unit?.nama ?? '-'}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <AlertCircle className="h-4 w-4 text-muted-foreground" />
@@ -110,7 +110,7 @@ export default function HelpdeskShow({ ticket, canProcess, canFinish, canClose }
                                         {ticket.lampiran.map((f, i) => (
                                             <li key={i} className="flex items-center gap-2 text-sm">
                                                 <Paperclip className="h-3 w-3" />
-                                                <a href={`/helpdesk/${ticket.id}/lampiran/${i}`} className="text-blue-600 hover:underline">
+                                                <a href={lampiran({ helpdesk: ticket.id, index: i }).url} className="text-blue-600 hover:underline">
                                                     {f.name}
                                                 </a>
                                             </li>
@@ -191,13 +191,13 @@ export default function HelpdeskShow({ ticket, canProcess, canFinish, canClose }
                                     <form
                                         onSubmit={(e) => {
                                             e.preventDefault();
-                                            router.post(`/helpdesk/${ticket.id}/proses`, { komentar });
+                                            router.post(proses({ helpdesk: ticket.id }).url, { komentar: komentarProses || undefined });
                                         }}
                                         className="space-y-2"
                                     >
                                         <Textarea
-                                            value={komentar}
-                                            onChange={(e) => setKomentar(e.target.value)}
+                                            value={komentarProses}
+                                            onChange={(e) => setKomentarProses(e.target.value)}
                                             placeholder="Komentar (opsional)..."
                                             rows={2}
                                         />
@@ -219,7 +219,7 @@ export default function HelpdeskShow({ ticket, canProcess, canFinish, canClose }
                                             <form
                                                 onSubmit={(e) => {
                                                     e.preventDefault();
-                                                    post(`/helpdesk/${ticket.id}/selesaikan`);
+                                                    post(selesaikan({ helpdesk: ticket.id }).url);
                                                 }}
                                                 className="space-y-2"
                                             >
@@ -242,13 +242,13 @@ export default function HelpdeskShow({ ticket, canProcess, canFinish, canClose }
                                     <form
                                         onSubmit={(e) => {
                                             e.preventDefault();
-                                            router.post(`/helpdesk/${ticket.id}/tutup`, { komentar });
+                                            router.post(tutup({ helpdesk: ticket.id }).url, { komentar: komentarTutup || undefined });
                                         }}
                                         className="space-y-2"
                                     >
                                         <Textarea
-                                            value={komentar}
-                                            onChange={(e) => setKomentar(e.target.value)}
+                                            value={komentarTutup}
+                                            onChange={(e) => setKomentarTutup(e.target.value)}
                                             placeholder="Alasan tutup (opsional)..."
                                             rows={2}
                                         />

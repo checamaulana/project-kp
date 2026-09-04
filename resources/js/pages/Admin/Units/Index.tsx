@@ -1,8 +1,9 @@
-import AppLayout from '@/components/common/AppLayout';
-import { Button, ButtonLink } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Link, router } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { Plus, Edit, Trash2 } from 'lucide-react';
+import AppLayout from '@/components/common/AppLayout';
+import { PageHeader } from '@/components/common/PageHeader';
+import { Button, ButtonLink } from '@/components/ui/button';
+import { create, edit, destroy as destroyUnit } from '@/routes/admin/units';
 
 interface Unit {
     id: number;
@@ -19,22 +20,22 @@ interface Props {
 export default function AdminUnitsIndex({ units }: Props) {
     const handleDelete = (id: number) => {
         if (confirm('Hapus unit ini?')) {
-            router.delete(`/admin/units/${id}`);
+            router.delete(destroyUnit({ unit: id }).url);
         }
     };
 
     return (
         <AppLayout>
-            <div className="mb-6 flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold">Manajemen Unit</h1>
-                    <p className="text-sm text-muted-foreground">Total: {units.total} unit</p>
-                </div>
-                <ButtonLink href="/admin/units/create">
-                    <Plus className="icon-nav" />
-                    Tambah Unit
-                </ButtonLink>
-            </div>
+            <PageHeader
+                title="Manajemen Unit"
+                description={`Total: ${units.total} unit`}
+                actions={
+                    <ButtonLink href={create.url()}>
+                        <Plus className="icon-nav" />
+                        Tambah Unit
+                    </ButtonLink>
+                }
+            />
 
             <div className="overflow-hidden rounded-lg border bg-card">
                 <div className="overflow-x-auto">
@@ -49,30 +50,38 @@ export default function AdminUnitsIndex({ units }: Props) {
                             </tr>
                         </thead>
                         <tbody>
-                            {units.data.map((u) => (
-                                <tr key={u.id} className="border-t">
-                                    <td className="p-3 font-mono">{u.kode}</td>
-                                    <td className="p-3 font-medium">{u.nama}</td>
-                                    <td className="p-3 text-xs">{u.keterangan ?? '-'}</td>
-                                    <td className="p-3">
-                                        <span
-                                            className={`rounded px-2 py-1 text-xs ${u.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}
-                                        >
-                                            {u.is_active ? 'Aktif' : 'Non-aktif'}
-                                        </span>
-                                    </td>
-                                    <td className="p-3">
-                                        <div className="flex gap-1">
-                                            <ButtonLink href={`/admin/units/${u.id}/edit`} size="icon" variant="ghost" title="Edit">
-                                                <Edit className="icon-nav" />
-                                            </ButtonLink>
-                                            <Button size="icon" variant="ghost" onClick={() => handleDelete(u.id)}>
-                                                <Trash2 className="h-4 w-4 text-destructive" />
-                                            </Button>
-                                        </div>
+                            {units.data.length === 0 ? (
+                                <tr>
+                                    <td colSpan={5} className="p-8 text-center text-muted-foreground">
+                                        Belum ada unit.
                                     </td>
                                 </tr>
-                            ))}
+                            ) : (
+                                units.data.map((u) => (
+                                    <tr key={u.id} className="border-t">
+                                        <td className="p-3 font-mono">{u.kode}</td>
+                                        <td className="p-3 font-medium">{u.nama}</td>
+                                        <td className="p-3 text-xs">{u.keterangan ?? '-'}</td>
+                                        <td className="p-3">
+                                            <span
+                                                className={`rounded px-2 py-1 text-xs ${u.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}
+                                            >
+                                                {u.is_active ? 'Aktif' : 'Non-aktif'}
+                                            </span>
+                                        </td>
+                                        <td className="p-3">
+                                            <div className="flex gap-1">
+                                                <ButtonLink href={edit({ unit: u.id }).url} size="icon" variant="ghost" title="Edit">
+                                                    <Edit className="icon-nav" />
+                                                </ButtonLink>
+                                                <Button size="icon" variant="ghost" onClick={() => handleDelete(u.id)}>
+                                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                                </Button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
                         </tbody>
                     </table>
                 </div>

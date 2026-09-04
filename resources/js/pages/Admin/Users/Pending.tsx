@@ -1,9 +1,12 @@
-import AppLayout from '@/components/common/AppLayout';
-import { Button, ButtonLink } from '@/components/ui/button';;
-import { Card, CardContent } from '@/components/ui/card';
-import { Link, router, useForm } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { ArrowLeft, Check, X } from 'lucide-react';
+import { useState } from 'react';
+import AppLayout from '@/components/common/AppLayout';
+import { PageHeader } from '@/components/common/PageHeader';
+import { Button, ButtonLink } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { index, approve, reject } from '@/routes/admin/users';
 
 interface User {
     id: number;
@@ -18,29 +21,32 @@ interface Props {
 }
 
 export default function AdminUsersPending({ users }: Props) {
-    const { data, setData, post } = useForm<{ user_id: string; role: string }>({ user_id: '', role: 'staf' });
+    const [roles, setRoles] = useState<Record<number, string>>({});
 
-    const handleApprove = (userId: number, role: string) => {
-        router.post(`/admin/users/${userId}/approve`, { role });
+    const handleApprove = (userId: number) => {
+        const role = roles[userId] ?? 'staf';
+        if (confirm(`Setujui user ini sebagai ${role}?`)) {
+            router.post(approve({ user: userId }).url, { role });
+        }
     };
 
     const handleReject = (userId: number) => {
         if (confirm('Tolak user ini?')) {
-            router.post(`/admin/users/${userId}/reject`);
+            router.post(reject({ user: userId }).url);
         }
     };
 
     return (
         <AppLayout>
-            <div className="mb-6 flex items-center gap-4">
-                <ButtonLink href="/admin/users" variant="ghost" size="icon" aria-label="Kembali">
-                    <ArrowLeft className="icon-nav" />
-                </ButtonLink>
-                <div>
-                    <h1 className="text-2xl font-bold">User Pending</h1>
-                    <p className="text-sm text-muted-foreground">{users.total} user menunggu persetujuan</p>
-                </div>
-            </div>
+            <PageHeader
+                title="User Pending"
+                description={`${users.total} user menunggu persetujuan`}
+                actions={
+                    <ButtonLink href={index.url()} variant="ghost" size="icon" aria-label="Kembali">
+                        <ArrowLeft className="icon-nav" />
+                    </ButtonLink>
+                }
+            />
 
             {users.data.length === 0 ? (
                 <Card>
@@ -56,11 +62,16 @@ export default function AdminUsersPending({ users }: Props) {
                                         {u.name} <span className="text-sm text-muted-foreground">(@{u.username})</span>
                                     </p>
                                     <p className="text-sm text-muted-foreground">
-                                        {u.email} • {u.unit?.nama}
+                                        {u.email} • {u.unit?.nama ?? '-'}
                                     </p>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <Select onValueChange={(v) => handleApprove(u.id, v)} defaultValue="staf">
+                                    <Select
+                                        value={roles[u.id] ?? 'staf'}
+                                        onValueChange={(v: string | null) => {
+                                            if (v) setRoles((prev) => ({ ...prev, [u.id]: v }));
+                                        }}
+                                    >
                                         <SelectTrigger className="w-[140px]">
                                             <SelectValue />
                                         </SelectTrigger>
@@ -71,7 +82,7 @@ export default function AdminUsersPending({ users }: Props) {
                                             <SelectItem value="superadmin">Superadmin</SelectItem>
                                         </SelectContent>
                                     </Select>
-                                    <Button onClick={() => handleApprove(u.id, 'staf')}>
+                                    <Button onClick={() => handleApprove(u.id)} title="Setujui">
                                         <Check className="h-4 w-4" />
                                     </Button>
                                     <Button variant="destructive" onClick={() => handleReject(u.id)}>

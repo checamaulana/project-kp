@@ -1,48 +1,19 @@
-import { useState } from 'react';
-import { Link } from '@inertiajs/react';
-import { Menu, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { buttonVariants } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Header } from '@/components/common/Header';
 import { Sidebar } from '@/components/common/Sidebar';
-import { dashboard } from '@/routes';
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
-    const [open, setOpen] = useState(false);
+interface AppLayoutProps {
+    children: React.ReactNode;
+    title?: string;
+    breadcrumb?: { label: string; href?: string }[];
+}
 
+export default function AppLayout({ children, title, breadcrumb }: AppLayoutProps) {
     return (
-        <div className="flex min-h-screen bg-muted/40">
-            <aside className="hidden w-60 shrink-0 border-r bg-card md:block">
-                <div className="border-b p-4">
-                    <Link href={dashboard.url()} className="text-lg font-bold text-primary">
-                        SIM Surat
-                    </Link>
-                </div>
-                <Sidebar />
-            </aside>
-
-            <div className="flex flex-1 flex-col">
-                <div className="flex items-center gap-2 border-b bg-card px-4 md:hidden">
-                    <Sheet open={open} onOpenChange={setOpen}>
-                        <SheetTrigger
-                            className={cn(buttonVariants({ variant: 'ghost', size: 'icon' }), 'rounded-pill')}
-                        >
-                            <Menu className="icon-nav" />
-                        </SheetTrigger>
-                        <SheetContent side="left" className="w-60 p-0">
-                            <div className="border-b p-4">
-                                <span className="text-lg font-bold text-primary">SIM Surat</span>
-                            </div>
-                            <Sidebar onNavigate={() => setOpen(false)} />
-                        </SheetContent>
-                    </Sheet>
-                    <Header />
-                </div>
-                <div className="hidden md:block">
-                    <Header />
-                </div>
-                <main className="flex-1 p-4 md:p-6">{children}</main>
+        <div className="flex min-h-screen bg-[#F7F9F7]">
+            <Sidebar />
+            <div className="flex min-w-0 flex-1 flex-col">
+                <Header title={title} breadcrumb={breadcrumb} />
+                <main className="flex-1 px-6 py-6">{children}</main>
             </div>
         </div>
     );

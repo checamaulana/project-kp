@@ -1,17 +1,16 @@
-import AppLayout from '@/components/common/AppLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Link } from '@inertiajs/react';
 import { FileInput, FileOutput, BarChart3 } from 'lucide-react';
+import AppLayout from '@/components/common/AppLayout';
+import { PageHeader } from '@/components/common/PageHeader';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { suratMasuk, suratKeluar } from '@/routes/rekap';
 
 export default function RekapIndex() {
     return (
         <AppLayout>
-            <div className="mb-6">
-                <h1 className="text-2xl font-bold">Rekap</h1>
-                <p className="text-sm text-muted-foreground">Rekapitulasi surat & disposisi RSGM UNIMUS</p>
-            </div>
+            <PageHeader title="Rekap" description="Rekapitulasi surat & disposisi RSGM UNIMUS" />
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                <Link href="/rekap/surat-masuk">
+                <Link href={suratMasuk.url()}>
                     <Card className="cursor-pointer transition-colors hover:bg-muted/50">
                         <CardHeader className="flex flex-row items-center gap-2">
                             <FileInput className="h-5 w-5 text-blue-600" />
@@ -20,7 +19,7 @@ export default function RekapIndex() {
                         <CardContent className="text-sm text-muted-foreground">Lihat & export data surat masuk</CardContent>
                     </Card>
                 </Link>
-                <Link href="/rekap/surat-keluar">
+                <Link href={suratKeluar.url()}>
                     <Card className="cursor-pointer transition-colors hover:bg-muted/50">
                         <CardHeader className="flex flex-row items-center gap-2">
                             <FileOutput className="h-5 w-5 text-green-600" />

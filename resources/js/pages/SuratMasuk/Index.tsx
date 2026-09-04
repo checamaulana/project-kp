@@ -1,9 +1,14 @@
-import AppLayout from '@/components/common/AppLayout';
-import { Button, ButtonLink, ButtonAnchor } from '@/components/ui/button';;
-import { Input } from '@/components/ui/input';
-import { Link, router, usePage } from '@inertiajs/react';
-import { FileText, Plus, Edit, Trash2, Eye, Download, Printer } from 'lucide-react';
+import { router } from '@inertiajs/react';
+import { Plus, Edit, Trash2, Eye, Download } from 'lucide-react';
 import { useState } from 'react';
+import AppLayout from '@/components/common/AppLayout';
+import { PageHeader } from '@/components/common/PageHeader';
+import { Pagination } from '@/components/common/Pagination';
+import { Button, ButtonLink, ButtonAnchor } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { formatTanggal } from '@/lib/format';
+import { dashboard } from '@/routes';
+import { create, destroy, download, edit, index, show } from '@/routes/surat-masuk';
 
 interface SuratMasukItem {
     id: number;
@@ -40,30 +45,37 @@ interface SuratMasukIndexProps {
 
 export default function SuratMasukIndex({ suratMasuks, filters, activeYear }: SuratMasukIndexProps) {
     const [search, setSearch] = useState(filters.search ?? '');
+    const [tanggalMulai, setTanggalMulai] = useState(filters.tanggal_mulai ?? '');
+    const [tanggalSelesai, setTanggalSelesai] = useState(filters.tanggal_selesai ?? '');
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
-        router.get('/surat-masuk', { ...filters, search }, { preserveState: true });
+        router.get(
+            index.url(),
+            { search, tanggal_mulai: tanggalMulai || undefined, tanggal_selesai: tanggalSelesai || undefined },
+            { preserveState: true },
+        );
     };
 
     const handleDelete = (id: number) => {
         if (confirm('Hapus surat ini? Data masuk Trash selama 30 hari.')) {
-            router.delete(`/surat-masuk/${id}`);
+            router.delete(destroy({ surat_masuk: id }).url);
         }
     };
 
     return (
         <AppLayout>
-            <div className="mb-6 flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold">Surat Masuk</h1>
-                    <p className="text-sm text-muted-foreground">Tahun aktif: {activeYear}</p>
-                </div>
-                <ButtonLink href="/surat-masuk/create">
-                    <Plus className="icon-nav" />
-                    Tambah Surat
-                </ButtonLink>
-            </div>
+            <PageHeader
+                title="Surat Masuk"
+                description={`Tahun aktif: ${activeYear}`}
+                breadcrumb={[{ label: 'Beranda', href: dashboard.url() }, { label: 'Surat Masuk' }]}
+                actions={
+                    <ButtonLink href={create.url()}>
+                        <Plus className="icon-nav" />
+                        Tambah Surat
+                    </ButtonLink>
+                }
+            />
 
             <form onSubmit={handleSearch} className="mb-4 flex flex-wrap gap-2">
                 <Input
@@ -73,8 +85,8 @@ export default function SuratMasukIndex({ suratMasuks, filters, activeYear }: Su
                     onChange={(e) => setSearch(e.target.value)}
                     className="max-w-sm"
                 />
-                <Input type="date" name="tanggal_mulai" defaultValue={filters.tanggal_mulai} className="max-w-[180px]" />
-                <Input type="date" name="tanggal_selesai" defaultValue={filters.tanggal_selesai} className="max-w-[180px]" />
+                <Input type="date" value={tanggalMulai} onChange={(e) => setTanggalMulai(e.target.value)} className="max-w-[180px]" />
+                <Input type="date" value={tanggalSelesai} onChange={(e) => setTanggalSelesai(e.target.value)} className="max-w-[180px]" />
                 <Button type="submit" variant="secondary">
                     Filter
                 </Button>
@@ -105,20 +117,20 @@ export default function SuratMasukIndex({ suratMasuks, filters, activeYear }: Su
                                 suratMasuks.data.map((s) => (
                                     <tr key={s.id} className="border-t">
                                         <td className="p-3">{s.no_urut}</td>
-                                        <td className="p-3">{s.tanggal_terima}</td>
+                                        <td className="p-3">{formatTanggal(s.tanggal_terima)}</td>
                                         <td className="p-3 font-medium">{s.pengirim}</td>
                                         <td className="p-3">{s.nomor_surat}</td>
                                         <td className="p-3">{s.perihal}</td>
                                         <td className="p-3 text-xs">{s.unit_penerima?.nama}</td>
                                         <td className="p-3">
                                             <div className="flex gap-1">
-                                                <ButtonLink href={`/surat-masuk/${s.id}`} size="icon" variant="ghost" title="Lihat">
+                                                <ButtonLink href={show({ surat_masuk: s.id }).url} size="icon" variant="ghost" title="Lihat">
                                                     <Eye className="icon-nav" />
                                                 </ButtonLink>
-                                                <ButtonLink href={`/surat-masuk/${s.id}/edit`} size="icon" variant="ghost" title="Edit">
+                                                <ButtonLink href={edit({ surat_masuk: s.id }).url} size="icon" variant="ghost" title="Edit">
                                                     <Edit className="icon-nav" />
                                                 </ButtonLink>
-                                                <ButtonAnchor href={`/surat-masuk/${s.id}/download`} size="icon" variant="ghost" title="Download">
+                                                <ButtonAnchor href={download({ suratMasuk: s.id }).url} size="icon" variant="ghost" title="Download">
                                                     <Download className="icon-nav" />
                                                 </ButtonAnchor>
                                                 <Button size="icon" variant="ghost" title="Hapus" onClick={() => handleDelete(s.id)}>
@@ -134,24 +146,7 @@ export default function SuratMasukIndex({ suratMasuks, filters, activeYear }: Su
                 </div>
             </div>
 
-            {suratMasuks.last_page > 1 && (
-                <div className="mt-4 flex items-center justify-between">
-                    <p className="text-sm text-muted-foreground">Total: {suratMasuks.total} surat</p>
-                    <div className="flex gap-1">
-                        {suratMasuks.links.map((link, i) =>
-                            link.url ? (
-                                <ButtonLink key={i} href={link.url} size="sm" variant={link.active ? 'default' : 'outline'}>
-                                    <span dangerouslySetInnerHTML={{ __html: link.label }} />
-                                </ButtonLink>
-                            ) : (
-                                <Button key={i} size="sm" variant={link.active ? 'default' : 'outline'} disabled>
-                                    <span dangerouslySetInnerHTML={{ __html: link.label }} />
-                                </Button>
-                            )
-                        )}
-                    </div>
-                </div>
-            )}
+            <Pagination links={suratMasuks.links} total={suratMasuks.total} itemLabel="surat" />
         </AppLayout>
     );
 }

@@ -1,12 +1,14 @@
+import { useForm } from '@inertiajs/react';
+import { ArrowLeft, Loader2, Send, Paperclip } from 'lucide-react';
+import { useState } from 'react';
 import AppLayout from '@/components/common/AppLayout';
-import { Button, ButtonLink } from '@/components/ui/button';;
+import { PageHeader } from '@/components/common/PageHeader';
+import { Button, ButtonLink } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Link, useForm } from '@inertiajs/react';
-import { ArrowLeft, Loader2, Send, Paperclip } from 'lucide-react';
-import { useState } from 'react';
+import { store, index } from '@/routes/helpdesk';
 
 interface Props {
     units: Array<{ id: number; nama: string; kode: string }>;
@@ -27,7 +29,7 @@ export default function HelpdeskCreate({ units, defaultName, defaultUnitId }: Pr
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        post('/helpdesk', { forceFormData: true });
+        post(store.url(), { forceFormData: true });
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -39,12 +41,14 @@ export default function HelpdeskCreate({ units, defaultName, defaultUnitId }: Pr
 
     return (
         <AppLayout>
-            <div className="mb-6 flex items-center gap-4">
-                <ButtonLink href="/helpdesk" variant="ghost" size="icon" aria-label="Kembali">
-                    <ArrowLeft className="icon-nav" />
-                </ButtonLink>
-                <h1 className="text-2xl font-bold">Lapor Kendala IT</h1>
-            </div>
+            <PageHeader
+                title="Lapor Kendala IT"
+                actions={
+                    <ButtonLink href={index.url()} variant="ghost" size="icon" aria-label="Kembali">
+                        <ArrowLeft className="icon-nav" />
+                    </ButtonLink>
+                }
+            />
 
             <form onSubmit={submit} className="max-w-2xl space-y-4 rounded-lg border bg-card p-6">
                 <div className="space-y-2">
@@ -145,7 +149,7 @@ export default function HelpdeskCreate({ units, defaultName, defaultUnitId }: Pr
                 </div>
 
                 <div className="flex justify-end gap-2">
-                    <ButtonLink href="/helpdesk" variant="outline">
+                    <ButtonLink href={index.url()} variant="outline">
                         Batal
                     </ButtonLink>
                     <Button type="submit" disabled={processing}>

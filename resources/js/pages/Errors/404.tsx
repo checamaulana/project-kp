@@ -1,6 +1,6 @@
-import { Link } from '@inertiajs/react';
-import { Button, ButtonLink } from '@/components/ui/button';;
 import { Home } from 'lucide-react';
+import { ButtonLink } from '@/components/ui/button';
+import { dashboard } from '@/routes';
 
 interface Props {
     message?: string;
@@ -13,7 +13,7 @@ export default function Error404({ message }: Props) {
                 <h1 className="text-6xl font-bold text-primary">404</h1>
                 <p className="mt-2 text-xl font-semibold">Halaman Tidak Ditemukan</p>
                 <p className="mt-2 text-sm text-muted-foreground">{message ?? 'Halaman yang Anda cari tidak ada.'}</p>
-                <ButtonLink href="/dashboard" className="mt-6">
+                <ButtonLink href={dashboard.url()} className="mt-6">
                     <Home className="icon-nav" />
                     Dashboard
                 </ButtonLink>

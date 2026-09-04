@@ -64,7 +64,7 @@ class SuratKeluarService
     {
         return DB::transaction(function () use ($surat, $data, $file) {
             if ($file) {
-                if ($surat->file_path) {
+                if ($surat->file_path && Storage::disk('local')->exists($surat->file_path)) {
                     Storage::disk('local')->delete($surat->file_path);
                 }
                 $fileName = $file->getClientOriginalName();
@@ -73,6 +73,8 @@ class SuratKeluarService
                 $data['file_path'] = $filePath;
                 $data['file_name'] = $fileName;
             }
+
+            unset($data['kode_surat_id'], $data['indeks_id'], $data['kode_turunan']);
 
             $surat->update($data);
 
@@ -94,19 +96,27 @@ class SuratKeluarService
 
     public function approve(SuratKeluar $surat, User $approver): SuratKeluar
     {
+        if (! $surat->isApprovable()) {
+            throw new \RuntimeException('Hanya surat berstatus menunggu ACC yang bisa disetujui.');
+        }
+
         $surat->update([
             'status' => StatusSuratKeluarEnum::DISETUJUI,
             'approved_by' => $approver->id,
             'approved_at' => now(),
         ]);
 
-        $surat->createdBy->notify(new SuratKeluarApprovedNotification($surat));
+        $surat->createdBy?->notify(new SuratKeluarApprovedNotification($surat));
 
         return $surat;
     }
 
     public function reject(SuratKeluar $surat, User $approver, string $reason): SuratKeluar
     {
+        if (! $surat->isApprovable()) {
+            throw new \RuntimeException('Hanya surat berstatus menunggu ACC yang bisa ditolak.');
+        }
+
         $surat->update([
             'status' => StatusSuratKeluarEnum::DITOLAK,
             'approved_by' => $approver->id,
@@ -114,7 +124,7 @@ class SuratKeluarService
             'rejection_reason' => $reason,
         ]);
 
-        $surat->createdBy->notify(new SuratKeluarRejectedNotification($surat));
+        $surat->createdBy?->notify(new SuratKeluarRejectedNotification($surat));
 
         return $surat;
     }

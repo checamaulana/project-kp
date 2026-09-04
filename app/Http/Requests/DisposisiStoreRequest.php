@@ -18,7 +18,6 @@ class DisposisiStoreRequest extends FormRequest
         $aksi = $this->input('aksi');
 
         $rules = [
-            'surat_masuk_id' => ['required', 'exists:surat_masuks,id'],
             'aksi' => ['required', Rule::enum(AksiDisposisiEnum::class)],
             'isi' => ['required', 'string', 'min:5', 'max:1000'],
         ];

@@ -1,18 +1,21 @@
-import AppLayout from '@/components/common/AppLayout';
-import { Button, ButtonLink } from '@/components/ui/button';;
-import { Card, CardContent } from '@/components/ui/card';
-import { Link } from '@inertiajs/react';
 import { Eye, Inbox } from 'lucide-react';
+import AppLayout from '@/components/common/AppLayout';
+import { PageHeader } from '@/components/common/PageHeader';
+import { Pagination, type PaginationLink } from '@/components/common/Pagination';
+import { ButtonLink } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { dashboard } from '@/routes';
+import { show } from '@/routes/surat-masuk';
 
 interface DisposisiItem {
     id: number;
     aksi: 'di_disposisi' | 'di_arsipkan';
     status: 'pending' | 'selesai';
     created_at: string;
-    suratMasuk: { id: number; nomor_surat: string; perihal: string; pengirim: string } | null;
-    dariUser: { name: string };
-    kepadaUser: { name: string } | null;
-    kepadaUnit: { nama: string } | null;
+    surat_masuk: { id: number; nomor_surat: string; perihal: string; pengirim: string } | null;
+    dari_user: { name: string } | null;
+    kepada_user: { name: string } | null;
+    kepada_unit: { nama: string } | null;
 }
 
 interface Props {
@@ -21,21 +24,28 @@ interface Props {
         current_page: number;
         last_page: number;
         total: number;
-        links: Array<{ url: string | null; label: string; active: boolean }>;
+        links: PaginationLink[];
     };
 }
 
 export default function DisposisiIndex({ disposisis }: Props) {
     return (
         <AppLayout>
-            <div className="mb-6">
-                <h1 className="text-2xl font-bold">Disposisi</h1>
-                <p className="text-sm text-muted-foreground">Disposisi yang ditujukan kepada Anda</p>
-            </div>
+            <PageHeader
+                title="Disposisi"
+                description="Disposisi yang ditujukan kepada Anda"
+                breadcrumb={[{ label: 'Beranda', href: dashboard.url() }, { label: 'Disposisi' }]}
+            />
 
             {disposisis.data.length === 0 ? (
                 <Card>
-                    <CardContent className="p-8 text-center text-muted-foreground">Belum ada disposisi untuk Anda.</CardContent>
+                    <CardContent className="flex flex-col items-center justify-center p-8 text-center">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                            <Inbox className="icon-md text-muted-foreground" />
+                        </div>
+                        <p className="mt-3 text-sm font-medium text-foreground">Belum ada disposisi untuk Anda</p>
+                        <p className="mt-1 text-xs text-muted-foreground">Disposisi baru akan muncul di sini</p>
+                    </CardContent>
                 </Card>
             ) : (
                 <div className="space-y-3">
@@ -45,11 +55,12 @@ export default function DisposisiIndex({ disposisis }: Props) {
                                 <div className="flex-1">
                                     <div className="flex items-center gap-2">
                                         <Inbox className="h-4 w-4 text-blue-600" />
-                                        <span className="font-medium">{d.suratMasuk?.perihal ?? '-'}</span>
-                                        <span className="text-xs text-muted-foreground">({d.suratMasuk?.nomor_surat})</span>
+                                        <span className="font-medium">{d.surat_masuk?.perihal ?? '-'}</span>
+                                        <span className="text-xs text-muted-foreground">({d.surat_masuk?.nomor_surat})</span>
                                     </div>
                                     <div className="mt-1 text-sm text-muted-foreground">
-                                        Dari: {d.dariUser.name} • {d.kepadaUser ? `Kepada: ${d.kepadaUser.name}` : `Unit: ${d.kepadaUnit?.nama}`} •{' '}
+                                        Dari: {d.dari_user?.name ?? '-'} •{' '}
+                                        {d.kepada_user ? `Kepada: ${d.kepada_user.name}` : `Unit: ${d.kepada_unit?.nama ?? '-'}`} •{' '}
                                         {new Date(d.created_at).toLocaleString('id-ID')}
                                     </div>
                                 </div>
@@ -59,8 +70,8 @@ export default function DisposisiIndex({ disposisis }: Props) {
                                     >
                                         {d.status}
                                     </span>
-                                    {d.suratMasuk && (
-                                        <ButtonLink href={`/surat-masuk/${d.suratMasuk.id}`} size="icon" variant="ghost" title="Lihat">
+                                    {d.surat_masuk && (
+                                        <ButtonLink href={show({ surat_masuk: d.surat_masuk.id }).url} size="icon" variant="ghost" title="Lihat">
                                             <Eye className="icon-nav" />
                                         </ButtonLink>
                                     )}
@@ -70,6 +81,8 @@ export default function DisposisiIndex({ disposisis }: Props) {
                     ))}
                 </div>
             )}
+
+            <Pagination links={disposisis.links} total={disposisis.total} itemLabel="disposisi" />
         </AppLayout>
     );
 }

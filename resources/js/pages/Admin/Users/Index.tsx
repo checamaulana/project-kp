@@ -1,8 +1,9 @@
+import { router } from '@inertiajs/react';
+import { Plus, Edit, Trash2, UserCheck } from 'lucide-react';
 import AppLayout from '@/components/common/AppLayout';
+import { PageHeader } from '@/components/common/PageHeader';
 import { Button, ButtonLink } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Link, router } from '@inertiajs/react';
-import { Plus, Edit, Trash2, UserCheck, UserX } from 'lucide-react';
+import { create, edit, pending, destroy as destroyUser } from '@/routes/admin/users';
 
 interface UserItem {
     id: number;
@@ -26,6 +27,12 @@ const statusColor: Record<string, string> = {
     rejected: 'bg-red-100 text-red-800',
 };
 
+const statusLabel: Record<string, string> = {
+    pending: 'Pending',
+    active: 'Active',
+    rejected: 'Rejected',
+};
+
 const roleLabel: Record<string, string> = {
     superadmin: 'Superadmin',
     admin_tu: 'Admin TU',
@@ -33,35 +40,33 @@ const roleLabel: Record<string, string> = {
     staf: 'Staf',
 };
 
-export default function AdminUsersIndex({ users, filters, pendingCount }: Props) {
+export default function AdminUsersIndex({ users, pendingCount }: Props) {
     const handleDelete = (id: number) => {
         if (confirm('Hapus user ini?')) {
-            router.delete(`/admin/users/${id}`);
+            router.delete(destroyUser({ user: id }).url);
         }
     };
 
     return (
         <AppLayout>
-            <div className="mb-6 flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold">Manajemen User</h1>
-                    <p className="text-sm text-muted-foreground">
-                        Total: {users.total} user {pendingCount > 0 && `• ${pendingCount} pending`}
-                    </p>
-                </div>
-                <div className="flex gap-2">
-                    {pendingCount > 0 && (
-                        <ButtonLink href="/admin/users-pending" variant="outline">
-                            <UserCheck className="icon-nav" />
-                            Pending ({pendingCount})
+            <PageHeader
+                title="Manajemen User"
+                description={`Total: ${users.total} user${pendingCount > 0 ? ` • ${pendingCount} pending` : ''}`}
+                actions={
+                    <>
+                        {pendingCount > 0 && (
+                            <ButtonLink href={pending.url()} variant="outline">
+                                <UserCheck className="icon-nav" />
+                                Pending ({pendingCount})
+                            </ButtonLink>
+                        )}
+                        <ButtonLink href={create.url()}>
+                            <Plus className="icon-nav" />
+                            Tambah User
                         </ButtonLink>
-                    )}
-                    <ButtonLink href="/admin/users/create">
-                        <Plus className="icon-nav" />
-                        Tambah User
-                    </ButtonLink>
-                </div>
-            </div>
+                    </>
+                }
+            />
 
             <div className="overflow-hidden rounded-lg border bg-card">
                 <div className="overflow-x-auto">
@@ -93,11 +98,13 @@ export default function AdminUsersIndex({ users, filters, pendingCount }: Props)
                                         <td className="p-3 text-xs">{u.unit?.nama ?? '-'}</td>
                                         <td className="p-3 text-xs">{roleLabel[u.role]}</td>
                                         <td className="p-3">
-                                            <span className={`rounded px-2 py-1 text-xs font-medium ${statusColor[u.status]}`}>{u.status}</span>
+                                            <span className={`rounded px-2 py-1 text-xs font-medium ${statusColor[u.status]}`}>
+                                                {statusLabel[u.status] ?? u.status}
+                                            </span>
                                         </td>
                                         <td className="p-3">
                                             <div className="flex gap-1">
-                                                <ButtonLink href={`/admin/users/${u.id}/edit`} size="icon" variant="ghost" title="Edit">
+                                                <ButtonLink href={edit({ user: u.id }).url} size="icon" variant="ghost" title="Edit">
                                                     <Edit className="icon-nav" />
                                                 </ButtonLink>
                                                 <Button size="icon" variant="ghost" onClick={() => handleDelete(u.id)}>

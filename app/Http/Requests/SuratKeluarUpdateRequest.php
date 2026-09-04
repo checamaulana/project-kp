@@ -21,6 +21,7 @@ class SuratKeluarUpdateRequest extends FormRequest
         $rules = [
             'kode_surat_id' => ['required', 'exists:kode_surats,id'],
             'indeks_id' => ['required', 'exists:indeks,id'],
+            'unit_pembuat_id' => ['required', 'exists:units,id'],
             'tanggal_surat' => ['required', 'date'],
             'kepada' => ['required', 'string', 'max:255'],
             'perihal' => ['required', 'string', 'max:255'],

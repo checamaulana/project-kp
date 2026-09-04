@@ -31,7 +31,14 @@ class SuratKeluarController extends Controller
     {
         $user = $request->user();
         $activeYear = session('active_year', now()->year);
-        $perPage = $request->input('per_page', 25);
+
+        $request->validate([
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'status' => ['nullable', 'in:'.implode(',', array_column(StatusSuratKeluarEnum::cases(), 'value'))],
+            'tanggal_mulai' => ['nullable', 'date'],
+            'tanggal_selesai' => ['nullable', 'date'],
+        ]);
+        $perPage = (int) $request->input('per_page', 25);
 
         $query = SuratKeluar::query()
             ->with(['kodeSurat', 'indeks', 'unitPembuat', 'createdBy', 'approvedBy'])
@@ -44,6 +51,13 @@ class SuratKeluarController extends Controller
 
         if ($status = $request->input('status')) {
             $query->where('status', $status);
+        }
+
+        if ($tglMulai = $request->input('tanggal_mulai')) {
+            $query->whereDate('tanggal_surat', '>=', $tglMulai);
+        }
+        if ($tglSelesai = $request->input('tanggal_selesai')) {
+            $query->whereDate('tanggal_surat', '<=', $tglSelesai);
         }
 
         if ($search = $request->input('search')) {
@@ -60,7 +74,7 @@ class SuratKeluarController extends Controller
 
         return Inertia::render('SuratKeluar/Index', [
             'suratKeluars' => $suratKeluars,
-            'filters' => $request->only(['search', 'status', 'per_page']),
+            'filters' => $request->only(['search', 'status', 'tanggal_mulai', 'tanggal_selesai', 'per_page']),
             'pendingCount' => $pendingCount,
             'activeYear' => $activeYear,
         ]);

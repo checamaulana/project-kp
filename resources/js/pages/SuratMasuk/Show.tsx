@@ -1,13 +1,16 @@
+import { useForm } from '@inertiajs/react';
+import { Download, Printer, Archive, Loader2, Mail } from 'lucide-react';
+import { useState } from 'react';
 import AppLayout from '@/components/common/AppLayout';
-import { Button, ButtonAnchor, ButtonLink } from '@/components/ui/button';;
+import { PageHeader } from '@/components/common/PageHeader';
+import { Button, ButtonAnchor } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Link, router, useForm } from '@inertiajs/react';
-import { ArrowLeft, Download, Printer, Inbox, Archive, Loader2, Mail } from 'lucide-react';
-import { useState } from 'react';
+import { Textarea } from '@/components/ui/textarea';
+import { formatTanggal } from '@/lib/format';
+import { store as storeDisposisi } from '@/routes/disposisi';
+import { cetakDisposisi, download, index } from '@/routes/surat-masuk';
 
 interface UserOption {
     id: number;
@@ -24,9 +27,9 @@ interface DisposisiItem {
     aksi: 'di_disposisi' | 'di_arsipkan';
     status: 'pending' | 'selesai';
     created_at: string;
-    dariUser: { id: number; name: string };
-    kepadaUser: { id: number; name: string } | null;
-    kepadaUnit: { id: number; nama: string } | null;
+    dari_user: { id: number; name: string } | null;
+    kepada_user: { id: number; name: string } | null;
+    kepada_unit: { id: number; nama: string } | null;
 }
 
 interface Props {
@@ -44,7 +47,7 @@ interface Props {
         file_name: string;
         status: 'aktif' | 'on_route' | 'selesai';
         indeks: { id: number; kode: string; nama: string } | null;
-        unitPenerima: { id: number; nama: string; kode: string };
+        unit_penerima: { id: number; nama: string; kode: string } | null;
         creator: { id: number; name: string } | null;
         disposisis: DisposisiItem[];
     };
@@ -63,7 +66,7 @@ export default function SuratMasukShow({ surat, users, units }: Props) {
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(`/surat-masuk/${surat.id}/disposisi`, {
+        post(storeDisposisi({ suratMasuk: surat.id }).url, {
             onSuccess: () => {
                 reset();
                 setShowForm(false);
@@ -73,31 +76,23 @@ export default function SuratMasukShow({ surat, users, units }: Props) {
 
     return (
         <AppLayout>
-            <div className="mb-6 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <ButtonLink href="/surat-masuk" variant="ghost" size="icon" aria-label="Kembali">
-                        <ArrowLeft className="icon-nav" />
-                    </ButtonLink>
-                    <div>
-                        <h1 className="text-2xl font-bold">
-                            Surat Masuk #{surat.no_urut}/{surat.tahun}
-                        </h1>
-                        <p className="text-sm text-muted-foreground">
-                            {surat.pengirim} - {surat.perihal}
-                        </p>
-                    </div>
-                </div>
-                <div className="flex gap-2">
-                    <ButtonAnchor href={`/surat-masuk/${surat.id}/download`} variant="outline">
-                        <Download className="icon-nav" />
-                        Download
-                    </ButtonAnchor>
-                    <ButtonAnchor href={`/surat-masuk/${surat.id}/cetak-disposisi`} target="_blank">
-                        <Printer className="icon-nav" />
-                        Cetak Disposisi
-                    </ButtonAnchor>
-                </div>
-            </div>
+            <PageHeader
+                title={`Surat Masuk #${surat.no_urut}/${surat.tahun}`}
+                description={`${surat.pengirim} - ${surat.perihal}`}
+                breadcrumb={[{ label: 'Surat Masuk', href: index.url() }, { label: `#${surat.no_urut}/${surat.tahun}` }]}
+                actions={
+                    <>
+                        <ButtonAnchor href={download({ suratMasuk: surat.id }).url} variant="outline">
+                            <Download className="icon-nav" />
+                            Download
+                        </ButtonAnchor>
+                        <ButtonAnchor href={cetakDisposisi({ suratMasuk: surat.id }).url} target="_blank">
+                            <Printer className="icon-nav" />
+                            Cetak Disposisi
+                        </ButtonAnchor>
+                    </>
+                }
+            />
 
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
                 <div className="space-y-4 lg:col-span-2">
@@ -108,10 +103,10 @@ export default function SuratMasukShow({ surat, users, units }: Props) {
                         <CardContent className="space-y-2 text-sm">
                             <div className="grid grid-cols-2 gap-2">
                                 <div>
-                                    <span className="text-muted-foreground">Tanggal Terima:</span> {surat.tanggal_terima}
+                                    <span className="text-muted-foreground">Tanggal Terima:</span> {formatTanggal(surat.tanggal_terima)}
                                 </div>
                                 <div>
-                                    <span className="text-muted-foreground">Tanggal Surat:</span> {surat.tanggal_surat}
+                                    <span className="text-muted-foreground">Tanggal Surat:</span> {formatTanggal(surat.tanggal_surat)}
                                 </div>
                                 <div>
                                     <span className="text-muted-foreground">Nomor Surat:</span> {surat.nomor_surat}
@@ -124,7 +119,7 @@ export default function SuratMasukShow({ surat, users, units }: Props) {
                                     {surat.indeks ? `${surat.indeks.kode} - ${surat.indeks.nama}` : '-'}
                                 </div>
                                 <div>
-                                    <span className="text-muted-foreground">Unit:</span> {surat.unitPenerima.nama}
+                                    <span className="text-muted-foreground">Unit:</span> {surat.unit_penerima?.nama ?? '-'}
                                 </div>
                             </div>
                             <div className="pt-2">
@@ -203,6 +198,9 @@ export default function SuratMasukShow({ surat, users, units }: Props) {
                                         <Label>Isi Disposisi *</Label>
                                         <Textarea value={data.isi} onChange={(e) => setData('isi', e.target.value)} rows={3} required />
                                         {errors.isi && <p className="text-sm text-destructive">{errors.isi}</p>}
+                                        {(errors.kepada_user_id || errors.kepada_unit_id) && (
+                                            <p className="text-sm text-destructive">{errors.kepada_user_id ?? errors.kepada_unit_id}</p>
+                                        )}
                                     </div>
                                     <div className="flex justify-end gap-2">
                                         <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
@@ -233,9 +231,9 @@ export default function SuratMasukShow({ surat, users, units }: Props) {
                                             <div className="flex-1 pb-3">
                                                 <div className="text-xs text-muted-foreground">{new Date(d.created_at).toLocaleString('id-ID')}</div>
                                                 <div className="font-medium">
-                                                    Dari: {d.dariUser.name}
-                                                    {d.kepadaUser && ` → Kepada: ${d.kepadaUser.name}`}
-                                                    {d.kepadaUnit && ` → Unit: ${d.kepadaUnit.nama}`}
+                                                    Dari: {d.dari_user?.name ?? '-'}
+                                                    {d.kepada_user && ` → Kepada: ${d.kepada_user.name}`}
+                                                    {d.kepada_unit && ` → Unit: ${d.kepada_unit.nama}`}
                                                 </div>
                                                 <div className="mt-1 text-sm">{d.isi}</div>
                                             </div>

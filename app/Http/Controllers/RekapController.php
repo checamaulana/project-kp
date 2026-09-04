@@ -20,8 +20,13 @@ class RekapController extends Controller
     public function suratMasuk(Request $request): Response
     {
         $user = $request->user();
-        $tahun = $request->input('tahun', session('active_year', now()->year));
-        $perPage = $request->input('per_page', 50);
+
+        $request->validate([
+            'tahun' => ['nullable', 'integer', 'between:2000,2100'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+        ]);
+        $tahun = (int) $request->input('tahun', session('active_year', now()->year));
+        $perPage = (int) $request->input('per_page', 50);
 
         $query = SuratMasuk::with(['unitPenerima', 'indeks'])
             ->where('tahun', $tahun)
@@ -42,8 +47,13 @@ class RekapController extends Controller
     public function suratKeluar(Request $request): Response
     {
         $user = $request->user();
-        $tahun = $request->input('tahun', session('active_year', now()->year));
-        $perPage = $request->input('per_page', 50);
+
+        $request->validate([
+            'tahun' => ['nullable', 'integer', 'between:2000,2100'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+        ]);
+        $tahun = (int) $request->input('tahun', session('active_year', now()->year));
+        $perPage = (int) $request->input('per_page', 50);
 
         $query = SuratKeluar::with(['kodeSurat', 'indeks', 'unitPembuat', 'createdBy'])
             ->where('tahun', $tahun)

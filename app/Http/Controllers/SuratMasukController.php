@@ -12,6 +12,7 @@ use App\Services\PdfGeneratorService;
 use App\Services\SuratMasukService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -26,7 +27,11 @@ class SuratMasukController extends Controller
     {
         $user = $request->user();
         $activeYear = session('active_year', now()->year);
-        $perPage = $request->input('per_page', 25);
+
+        $request->validate([
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+        ]);
+        $perPage = (int) $request->input('per_page', 25);
 
         $query = SuratMasuk::query()
             ->with(['indeks', 'unitPenerima', 'creator'])
@@ -144,7 +149,8 @@ class SuratMasukController extends Controller
 
     public function restore(int $id): RedirectResponse
     {
-        $this->authorize('restore', SuratMasuk::class);
+        $surat = SuratMasuk::onlyTrashed()->findOrFail($id);
+        $this->authorize('restore', $surat);
         $this->service->restore($id);
 
         return back()->with('success', 'Surat masuk dipulihkan.');
@@ -162,11 +168,11 @@ class SuratMasukController extends Controller
     {
         $this->authorize('view', $suratMasuk);
 
-        if (! \Storage::disk('local')->exists($suratMasuk->file_path)) {
+        if (! Storage::disk('local')->exists($suratMasuk->file_path)) {
             abort(404, 'File tidak ditemukan.');
         }
 
-        return \Storage::disk('local')->download(
+        return Storage::disk('local')->download(
             $suratMasuk->file_path,
             $suratMasuk->file_name
         );

@@ -47,7 +47,7 @@ class SuratKeluarStoreRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'kode_turanan.in' => 'Untuk Surat Tugas, kode turunan harus KP atau KM.',
+            'kode_turunan.in' => 'Untuk Surat Tugas, kode turunan harus KP atau KM.',
             'tanggal_selesai_penugasan.after_or_equal' => 'Tanggal selesai harus setelah atau sama dengan tanggal mulai.',
         ];
     }

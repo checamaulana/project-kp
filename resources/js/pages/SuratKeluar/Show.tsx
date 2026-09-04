@@ -1,10 +1,13 @@
+import { router, useForm } from '@inertiajs/react';
+import { Check, Edit, Printer, Send, X } from 'lucide-react';
+import { useState } from 'react';
 import AppLayout from '@/components/common/AppLayout';
-import { Button, ButtonAnchor, ButtonLink } from '@/components/ui/button';;
+import { PageHeader } from '@/components/common/PageHeader';
+import { Button, ButtonAnchor, ButtonLink } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { Link, router, useForm } from '@inertiajs/react';
-import { ArrowLeft, Check, Edit, Printer, Send, X } from 'lucide-react';
-import { useState } from 'react';
+import { formatTanggal } from '@/lib/format';
+import { approve, cetak, edit, index, reject, submit } from '@/routes/surat-keluar';
 
 interface Props {
     surat: {
@@ -24,11 +27,11 @@ interface Props {
         kode_turunan: string | null;
         tanggal_mulai_penugasan: string | null;
         tanggal_selesai_penugasan: string | null;
-        kodeSurat: { kode: string; keterangan: string } | null;
+        kode_surat: { kode: string; keterangan: string } | null;
         indeks: { kode: string; nama: string } | null;
-        unitPembuat: { nama: string };
-        createdBy: { name: string };
-        approvedBy: { name: string } | null;
+        unit_pembuat: { nama: string } | null;
+        created_by: { name: string } | null;
+        approved_by: { name: string } | null;
     };
     canApprove: boolean;
 }
@@ -47,27 +50,19 @@ export default function SuratKeluarShow({ surat, canApprove }: Props) {
 
     return (
         <AppLayout>
-            <div className="mb-6 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <ButtonLink href="/surat-keluar" variant="ghost" size="icon" aria-label="Kembali">
-                        <ArrowLeft className="icon-nav" />
-                    </ButtonLink>
-                    <div>
-                        <h1 className="text-2xl font-bold">
-                            Surat Keluar #{surat.no_urut}/{surat.tahun}
-                        </h1>
-                        <p className="font-mono text-sm text-muted-foreground">{surat.nomor_surat}</p>
-                    </div>
-                </div>
-                <div className="flex gap-2">
-                    {surat.status === 'disetujui' && (
-                        <ButtonAnchor href={`/surat-keluar/${surat.id}/cetak`} target="_blank">
+            <PageHeader
+                title={`Surat Keluar #${surat.no_urut}/${surat.tahun}`}
+                description={surat.nomor_surat}
+                breadcrumb={[{ label: 'Surat Keluar', href: index.url() }, { label: `#${surat.no_urut}/${surat.tahun}` }]}
+                actions={
+                    surat.status === 'disetujui' && (
+                        <ButtonAnchor href={cetak({ suratKeluar: surat.id }).url} target="_blank">
                             <Printer className="icon-nav" />
                             Cetak PDF
                         </ButtonAnchor>
-                    )}
-                </div>
-            </div>
+                    )
+                }
+            />
 
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
                 <div className="space-y-4 lg:col-span-2">
@@ -79,7 +74,7 @@ export default function SuratKeluarShow({ surat, canApprove }: Props) {
                         <CardContent className="space-y-2 text-sm">
                             <div className="grid grid-cols-2 gap-2">
                                 <div>
-                                    <span className="text-muted-foreground">Tanggal:</span> {surat.tanggal_surat}
+                                    <span className="text-muted-foreground">Tanggal:</span> {formatTanggal(surat.tanggal_surat)}
                                 </div>
                                 <div>
                                     <span className="text-muted-foreground">Kepada:</span> {surat.kepada}
@@ -89,13 +84,13 @@ export default function SuratKeluarShow({ surat, canApprove }: Props) {
                                     {surat.indeks ? `${surat.indeks.kode} - ${surat.indeks.nama}` : '-'}
                                 </div>
                                 <div>
-                                    <span className="text-muted-foreground">Unit:</span> {surat.unitPembuat.nama}
+                                    <span className="text-muted-foreground">Unit:</span> {surat.unit_pembuat?.nama ?? '-'}
                                 </div>
                                 <div>
                                     <span className="text-muted-foreground">Penanda Tangan:</span> {surat.penanda_tangan}
                                 </div>
                                 <div>
-                                    <span className="text-muted-foreground">Dibuat oleh:</span> {surat.createdBy.name}
+                                    <span className="text-muted-foreground">Dibuat oleh:</span> {surat.created_by?.name ?? '-'}
                                 </div>
                             </div>
                             <div className="pt-2">
@@ -125,7 +120,8 @@ export default function SuratKeluarShow({ surat, canApprove }: Props) {
                             )}
                             {surat.approved_at && (
                                 <p className="text-xs text-muted-foreground">
-                                    {surat.status === 'disetujui' ? 'Disetujui' : 'Ditolak'} oleh {surat.approvedBy?.name} pada {surat.approved_at}
+                                    {surat.status === 'disetujui' ? 'Disetujui' : 'Ditolak'} oleh {surat.approved_by?.name ?? '-'} pada{' '}
+                                    {surat.approved_at}
                                 </p>
                             )}
                             {surat.rejection_reason && (
@@ -146,25 +142,25 @@ export default function SuratKeluarShow({ surat, canApprove }: Props) {
                         <CardContent className="space-y-2">
                             {surat.status === 'draft' && (
                                 <>
-                                    <ButtonLink href={`/surat-keluar/${surat.id}/edit`} variant="outline" className="w-full">
+                                    <ButtonLink href={edit({ surat_keluar: surat.id }).url} variant="outline" className="w-full">
                                         <Edit className="icon-nav" />
                                         Edit
                                     </ButtonLink>
-                                    <Button className="w-full" onClick={() => router.post(`/surat-keluar/${surat.id}/submit`)}>
+                                    <Button className="w-full" onClick={() => router.post(submit({ suratKeluar: surat.id }).url)}>
                                         <Send className="icon-nav" />
                                         Submit untuk ACC
                                     </Button>
                                 </>
                             )}
                             {surat.status === 'ditolak' && (
-                                <ButtonLink href={`/surat-keluar/${surat.id}/edit`} variant="outline" className="w-full">
+                                <ButtonLink href={edit({ surat_keluar: surat.id }).url} variant="outline" className="w-full">
                                     <Edit className="icon-nav" />
                                     Edit & Revisi
                                 </ButtonLink>
                             )}
                             {canApprove && surat.status === 'menunggu_acc' && (
                                 <>
-                                    <Button className="w-full" onClick={() => router.post(`/surat-keluar/${surat.id}/approve`)}>
+                                    <Button className="w-full" onClick={() => router.post(approve({ suratKeluar: surat.id }).url)}>
                                         <Check className="icon-nav" />
                                         ACC / Setujui
                                     </Button>
@@ -176,7 +172,7 @@ export default function SuratKeluarShow({ surat, canApprove }: Props) {
                                         <form
                                             onSubmit={(e) => {
                                                 e.preventDefault();
-                                                post(`/surat-keluar/${surat.id}/reject`);
+                                                post(reject({ suratKeluar: surat.id }).url);
                                             }}
                                             className="space-y-2"
                                         >
