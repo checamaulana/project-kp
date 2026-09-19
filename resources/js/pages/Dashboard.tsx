@@ -53,34 +53,61 @@ export default function Dashboard({ stats, recentSuratMasuk, recentHelpdesk, act
 
             {/* KPI Row */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <StatCard
-                    label="Surat Masuk"
-                    value={stats.surat_masuk}
-                    icon={<FileInput className="icon-md" />}
-                    accent="neutral"
-                    sublabel="Total tahun aktif"
-                />
-                <StatCard
-                    label="Surat Keluar"
-                    value={stats.surat_keluar}
-                    icon={<FileOutput className="icon-md" />}
-                    accent="neutral"
-                    sublabel="Total tahun aktif"
-                />
-                <StatCard
-                    label="Disposisi Tertunda"
-                    value={stats.disposisi_pending}
-                    icon={<Inbox className="icon-md" />}
-                    accent="neutral"
-                    sublabel="Belum ditindaklanjuti"
-                />
-                <StatCard
-                    label="Tiket IT Baru"
-                    value={stats.helpdesk_baru}
-                    icon={<Wrench className="icon-md" />}
-                    accent="neutral"
-                    sublabel="Memerlukan perhatian"
-                />
+                <div className="[&>div]:border-teal-200 [&>div]:bg-teal-50/30">
+                    <StatCard
+                        label="Surat Masuk"
+                        value={stats.surat_masuk}
+                        icon={
+                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-100 text-teal-600">
+                                <FileInput className="icon-md" />
+                            </div>
+                        }
+                        accent="neutral"
+                        sublabel="Total tahun aktif"
+                    />
+                </div>
+
+                <div className="[&>div]:border-blue-200 [&>div]:bg-blue-50/30">
+                    <StatCard
+                        label="Surat Keluar"
+                        value={stats.surat_keluar}
+                        icon={
+                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
+                                <FileOutput className="icon-md" />
+                            </div>
+                        }
+                        accent="neutral"
+                        sublabel="Total tahun aktif"
+                    />
+                </div>
+
+                <div className="[&>div]:border-amber-200 [&>div]:bg-amber-50/30">
+                    <StatCard
+                        label="Disposisi Tertunda"
+                        value={stats.disposisi_pending}
+                        icon={
+                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-600">
+                                <Inbox className="icon-md" />
+                            </div>
+                        }
+                        accent="neutral"
+                        sublabel="Belum ditindaklanjuti"
+                    />
+                </div>
+
+                <div className="[&>div]:border-purple-200 [&>div]:bg-purple-50/30">
+                    <StatCard
+                        label="Tiket IT Baru"
+                        value={stats.helpdesk_baru}
+                        icon={
+                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-100 text-purple-600">
+                                <Wrench className="icon-md" />
+                            </div>
+                        }
+                        accent="neutral"
+                        sublabel="Memerlukan perhatian"
+                    />
+                </div>
             </div>
 
             {/* Recent activity + Helpdesk */}
@@ -99,8 +126,8 @@ export default function Dashboard({ stats, recentSuratMasuk, recentHelpdesk, act
                     <CardContent className="px-0 py-0">
                         {recentSuratMasuk.length === 0 ? (
                             <div className="flex flex-col items-center justify-center px-6 py-12 text-center">
-                                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-                                    <FileInput className="icon-md text-muted-foreground" />
+                                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-teal-50">
+                                    <FileInput className="icon-md text-teal-500" />
                                 </div>
                                 <p className="mt-3 text-sm font-medium text-foreground">Belum ada surat masuk</p>
                                 <p className="mt-1 text-xs text-muted-foreground">Surat yang masuk akan muncul di sini</p>
@@ -146,7 +173,12 @@ export default function Dashboard({ stats, recentSuratMasuk, recentHelpdesk, act
                                 const Icon = s.icon;
                                 return (
                                     <div key={s.label} className="flex items-center gap-3 rounded-lg border border-border p-3">
-                                        <div className="flex h-9 w-9 items-center justify-center rounded-md bg-muted text-muted-foreground">
+                                        <div className={cn(
+                                            "flex h-9 w-9 items-center justify-center rounded-md",
+                                            s.label === "Baru" && "bg-purple-50 text-purple-500",
+                                            s.label === "Diproses" && "bg-blue-50 text-blue-500",
+                                            s.label === "Selesai" && "bg-teal-50 text-teal-500",
+                                        )}>
                                             <Icon className="icon-sm" />
                                         </div>
                                         <div className="flex-1">
